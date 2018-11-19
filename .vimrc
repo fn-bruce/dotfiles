@@ -7,6 +7,7 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'altercation/vim-colors-solarized'
+Plugin 'valloric/youcompleteme'
 
 call vundle#end()
 filetype plugin indent on
@@ -29,3 +30,6 @@ let g:indent_guides_guide_size = 1
 
 " RELATIVE NUMBER
 set number relativenumber
+
+" YOUCOMPLETEME SETTINGS
+let g:ycm_global_ycm_extra_conf = "~/.vim/.ycm_extra_conf.py"

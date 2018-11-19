@@ -12,7 +12,7 @@ ZSH_THEME="powerlevel9k/powerlevel9k"
 # Powerlevel9k Configuration
 POWERLEVEL9K_MODE='nerdfont-complete'
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon dir vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status time)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 
 # Set list of themes to load
 # Setting this variable when ZSH_THEME=random
@@ -102,7 +102,9 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # Plugins
-# [[ -s `brew --prefix`/etc/autojump.sh ]] && . `brew --prefix`/etc/autojump.sh
 source /usr/local/share/autojump/autojump.zsh
 source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# PATH SETTINGS
+export PATH=~/Development/flutter/bin:$PATH
