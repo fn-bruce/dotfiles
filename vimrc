@@ -2,13 +2,10 @@
 runtime bundle/pathogen/autoload/pathogen.vim
 call pathogen#infect()
 
-" Set the unicode standard
-set encoding=utf-8
-
 " Do not try to be VI compatible
 set nocompatible
 " Syntax highlighting
-syntax on
+syntax enable
 " Try to detect filetypes
 filetype off
 " UTF-8 Support
@@ -33,6 +30,9 @@ Plugin 'vim-syntastic/syntastic'
 Plugin 'nvie/vim-flake8'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
+Plugin 'dracula/vim'
+Plugin 'wikitopian/hardmode'
+" Plugin 'Konfekt/FastFold'
 
 call vundle#end()
 
@@ -40,7 +40,10 @@ call vundle#end()
 filetype plugin indent on
 
 " THEME SETTINGS
-colorscheme solarized
+let g:dracula_italic = 0
+colorscheme dracula
+highlight Normal ctermbg=None
+set termguicolors
 
 " INDENT SETTINGS
 " let g:indent_guides_enable_on_vim_startup = 1
@@ -141,12 +144,25 @@ if has("gui_running")
 	syntax enable
 	set background=light
     " colorscheme hypsteria
-    colorscheme solarized
-    " let g:molokai_original=0
+    colorscheme dracula
+    let g:molokai_original=0
 else
     " Adapt colors for dark background
     set background=dark
-    "set t_Co=256
+    set t_Co=256
+
+    augroup clear_cursor
+        " Stolen from TPetticrew's vimrc
+        " Remove line/column selection on inactive panes
+        autocmd!
+        autocmd WinEnter * setlocal cursorline
+        autocmd WinLeave * setlocal nocursorline
+    augroup END
+
+    " Highlight the cursor line
+    set cul
+    " Make the mouse disappear when in vim
+    set mousehide
 endif
 
 " Disable Arrow Keys
@@ -202,7 +218,7 @@ set incsearch
 " Use the / instead of \
 set shellslash
 "No word wrap
-set nowrap
+" set nowrap
 " Settings for vim to remember stuff on startup :help viminfo
 set viminfo='1000,h
 " Always show status line
@@ -213,7 +229,7 @@ set laststatus=2
 " %{expand('%:p')} gives me the full path to the file
 " %l/%L current line and total lines
 " %v current column
-set statusline=\ [%r]\ %n\ %{fugitive#statusline()}\ F:%{expand('%:p')}\ L:%l/%L\ C:%v
+" set statusline=\ [%r]\ %n\ %{fugitive#statusline()}\ F:%{expand('%:p')}\ L:%l/%L\ C:%v
 " This removes the characters between split windows (and some other junk)
 set fillchars="-"
 " This allows vim to work with buffers more liberally. So no warnings when
@@ -310,10 +326,15 @@ augroup END
 " auto insert other half of curley braces
 inoremap { {}<Esc>i
 
-" Run Python
-inoremap <C-R> <Esc>:w<CR>:!clear; python %<CR>
+" Run Python programs
+autocmd Filetype python inoremap <C-R> <Esc>:w<CR>:!clear; python %<CR>
 autocmd Filetype python nnoremap <buffer> <C-R> :w<CR>:!clear; python %<CR>
-vnoremap <C-R> <Esc>:w<CR>:!clear; python %<CR>
+autocmd Filetype python vnoremap <C-R> <Esc>:w<CR>:!clear; python %<CR>
+
+" Run C programs
+autocmd Filetype c inoremap <buffer> <C-R> <Esc>:w<CR>:!clear; make<CR>
+autocmd Filetype c nnoremap <buffer> <C-R> :w<CR>:!clear; make<CR>
+autocmd Filetype c vnoremap <buffer> <C-R> <Esc>:w<CR>:!clear; make<CR>
 
 " Pretty python highlight
 let python_highlight_all=1
@@ -323,9 +344,9 @@ nnoremap <silent> <Tab> :bnext<CR>
 nnoremap <silent> <S-Tab> :bprev<CR>
 
 " changes the normal, insert, and visual cursor shape
-let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-let &t_SR = "\<Esc>]50;CursorShape=2\x7"
-let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+" let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+" let &t_SR = "\<Esc>]50;CursorShape=2\x7"
+" let &t_EI = "\<Esc>]50;CursorShape=0\x7"
 
 " ============= KEY BINDINGS ====================
 
@@ -349,7 +370,7 @@ let g:python_pep8_indent_hang_closing = 1
 let g:SuperTabDefaultCompletionType = "<C-N>"
 
 " YouCompleteMe
- let g:ycm_python_binary_path = '/usr/local/bin/python3.7'
+let g:ycm_python_binary_path = '/Users/brucelee/.pyenv/shims/python3'
 let g:ycm_autoclose_preview_window_after_completion = 1
 map <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
 
@@ -376,4 +397,13 @@ let g:syntastic_python_checkers = ['pylint']
 let g:airline#extensions#tabline#enabled = 1
 
 " vim-airline-themes
-let g:airline_theme='base16'
+let g:airline_theme='dracula'
+
+" FastFold
+" nmap zuz <Plug>(FastFoldUpdate)
+" let g:fastfold_savehook = 1
+" let g:fastfold_fold_command_suffixes =  ['x','X','a','A','o','O','c','C']
+" let g:fastfold_fold_movement_commands = [']z', '[z', 'zj', 'zk']
+
+" Hardmode
+autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()
