@@ -73,6 +73,8 @@ plugins=(
     git 
     autojump
     zsh-autosuggestions
+    colored-man-pages
+    osx
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -109,6 +111,9 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias ide="~/Scripts/ide.sh"
+alias src="cd ~/Projects/bruce-website"
+alias vim="nvim"
+alias vi="nvim"
 
 # Enables zsh syntax highlighting
 source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
