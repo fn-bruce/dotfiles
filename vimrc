@@ -19,7 +19,7 @@
 " 1. Plugins |
 " ==========/
 
-call plug#begin('~/.vim/plugged') " https://www.github.com/junegunn/vim-plug
+call plug#begin('~/.config/nvim/.nvim/plugged') " https://www.github.com/junegunn/vim-plug
 
 " Plug 'christoomey/vim-sort-motion' " https://www.github.com/christoomey/vim-sort-motion
 Plug 'Xuyuanp/nerdtree-git-plugin' " https://github.com/Xuyuanp/nerdtree-git-plugin
@@ -30,7 +30,7 @@ Plug 'christoomey/vim-titlecase' " https://www.github.com/christoomey/vim-titlec
 Plug 'elzr/vim-json' " https://github.com/elzr/vim-json
 Plug 'gmarik/Vundle.vim' " https://www.github.com/gmarik/Vundle.vim
 Plug 'godlygeek/tabular' " https://www.github.com/godlygeek/tabular
-Plug 'jiangmiao/auto-pairs' " https://www.github.com/jiangmiao/auto-pairs
+Plug 'jiangmiao/auto-pairs' " https://github.com/jiangmiao/auto-pairs
 Plug 'kien/ctrlp.vim' " https://www.github.com/kien/ctrlp.vim
 Plug 'neoclide/coc.nvim', {'branch': 'release'} " https://github.com/neoclide/coc.nvim
 Plug 'neomake/neomake' " https://www.github.com/neomake/neomake
@@ -42,6 +42,8 @@ Plug 'tpope/vim-commentary' " https://www.github.com/tpope/vim-commentary
 Plug 'tpope/vim-fugitive' " https://www.github.com/tpope/vim-fugitive
 Plug 'tpope/vim-surround' " https://www.github.com/tpope/vim-surround
 Plug 'christoomey/vim-tmux-navigator' " https://github.com/christoomey/vim-tmux-navigator
+Plug 'qpkorr/vim-bufkill' " https://github.com/qpkorr/vim-bufkil:
+Plug 'majutsushi/tagbar' " https://github.com/majutsushi/tagbar
 
 " Theres an issue with icon colors in current update (https://github.com/ryanoasis/vim-devicons/issues/330)
 Plug 'ryanoasis/vim-devicons', {'commit': '58e57b6'} "https://github.com/ryanoasis/vim-devicons
@@ -59,7 +61,6 @@ Plug 'morhetz/gruvbox' " https://github.com/morhetz/gruvbox
 Plug 'pangloss/vim-javascript' " https://github.com/pangloss/vim-javascript
 Plug 'vim-python/python-syntax' " https://github.com/vim-python/python-syntax
 Plug 'MaxMEllon/vim-jsx-pretty' " https://github.com/MaxMEllon/vim-jsx-pretty
-
 
 
 call plug#end()
@@ -85,9 +86,11 @@ set scrolloff=10
 set cursorline
 
 set termguicolors
-colorscheme gruvbox
+" colorscheme gruvbox
 " let g:molokai_original = 1
 " let g:rehash256 = 1
+let ayucolor="mirage"
+colorscheme ayu
 
 " =================\
 " 3. Remapping Keys |
@@ -115,7 +118,7 @@ autocmd Filetype html nnoremap <leader>r :w<CR>:!open %<CR><CR>
 " 4. Automatic Commands |
 " =====================/
 
-" makes relative number work good when navigating to different panes
+" Makes relative number work good when navigating to different panes
 augroup numbertoggle
 	autocmd!
 	autocmd BufEnter,FocusGained,InsertLeave,WinEnter * if &number | set relativenumber   | endif
@@ -134,7 +137,7 @@ autocmd BufNewFile,BufRead * set autoindent
 autocmd BufNewFile,BufRead *.py set tabstop=4
 autocmd BufNewFile,BufRead *.py set softtabstop=4
 autocmd BufNewFile,BufRead *.py set shiftwidth=4
-autocmd BufNewFile,BufRead *.py set textwidth=79
+" autocmd BufNewFile,BufRead *.py set textwidth=79
 autocmd BufNewFile,BufRead *.py set colorcolumn=80
 autocmd BufNewFile,BufRead *.py set fileformat=unix
 
@@ -143,6 +146,7 @@ autocmd BufNewFile,BufRead *.py set fileformat=unix
 autocmd BufNewFile,BufRead *.html,*.js,*.css set tabstop=2
 autocmd BufNewFile,BufRead *.html,*.js,*.css set shiftwidth=2
 autocmd BufNewFile,BufRead *.html,*.js,*.css set softtabstop=2
+autocmd BufNewFile,BufRead *.html set filetype=htmldjango
 
 " JSON indentation
 autocmd BufNewFile,BufRead *.json set tabstop=2
@@ -153,12 +157,22 @@ autocmd BufNewFile,BufRead *.json set softtabstop=2
 autocmd BufRead,BufNewFile *.py,*.pyw,*.c,*.h highlight ExtraWhitespace ctermbg=red guibg=red
 autocmd BufRead,BufNewFile *.py,*.pyw,*.c,*.h match ExtraWhitespace /\s\+$/
 
-" Highlight current line
-
-
 " ==================\
 " 5. Plugin Settings |
 " ==================/
+
+" tagbar
+nmap <leader>t :TagbarToggle<CR>
+
+
+" vim-nerdtree-syntax-highlight
+let NERDTreeHighlightCursorline = 0
+
+" vim-bufkill
+let g:BufKillOverrideCtrlCaret=1
+
+" vim-commentary
+autocmd FileType htmldjango setlocal commentstring={#\ %s\ #}
 
 " tmux-vim-navigation
 let g:tmux_navigator_disable_when_zoomed=1
@@ -167,7 +181,7 @@ let g:tmux_navigator_disable_when_zoomed=1
 let g:python_highlight_all=1
 
 " auto-pairs
-let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"', '```':'```', '"""':'"""', "'''":"'''", "`":"`", "b'":"'", "f'":"'", "r'":"'"}
+let g:AutoPairs = {'(':')', '[':']', '{':'}', "'":"'", '"':'"',  '```':'```',  '"""':'"""',  "'''":"'''",  "`":"`",  "b'":"'",  "f'":"'",  "r'":"'",  '{%': '%}', '{% ': ' %}', '{#': '#}', '{# ': ' #}'}
 
 " SimpylFold
 let g:SimpylFold_docstring_preview = 1
@@ -187,6 +201,8 @@ autocmd Filetype json let g:indentLine_enabled = 0 " https://github.com/Yggdroot
 map <leader>n :NERDTreeToggle<CR>
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
+nnoremap \d :bp<CR>:bd #<CR>
+let g:NERDTreeMouseMode = 3
 
 " vim-closetag
 let g:closetag_filenames = "*.html,*.xhtml,*.phtml,*.php,*.jsx,*.js"
@@ -195,7 +211,7 @@ let g:closetag_filenames = "*.html,*.xhtml,*.phtml,*.php,*.jsx,*.js"
 autocmd FileType python map <leader>f :call flake8#Flake8()<CR>
 
 " vim-airline
-let g:airline_theme='molokai'
+let g:airline_theme='ayu'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#fnamemod = ':t'
 
@@ -208,18 +224,22 @@ let g:airline#extensions#tabline#fnamemod = ':t'
 " coc
 command! -nargs=0 Prettier :CocCommand prettier.formatfile
 let g:coc_global_extensions = [
-    \ 'coc-snippets',
-    \ 'coc-pairs',
-    \ 'coc-tsserver',
+    \ 'coc-css',
     \ 'coc-eslint',
-    \ 'coc-prettier',
+    \ 'coc-html',
     \ 'coc-json',
+    \ 'coc-prettier',
+    \ 'coc-python',
+    \ 'coc-snippets',
+    \ 'coc-tsserver',
+    \ 'coc-xml',
+    \ 'coc-yaml',
     \]
-command! -nargs=0 Prettier :CocCommand prettier.formatFile
+command! -nargs=0 Prettier :CocCommand prettier.formatfile
 
 " From Readme
 " if hidden is not set, TextEdit might fail.
-set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup " Better display for messages set cmdheight=2 " You will have bad experience for diagnostic messages when it's default 4000.
+set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup. Better display for messages set cmdheight=2. You will have bad experience for diagnostic messages when it's default 4000.
 set updatetime=300
 
 " don't give |ins-completion-menu| messages.
@@ -338,4 +358,3 @@ nnoremap <silent> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
-
