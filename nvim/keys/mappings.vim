@@ -46,3 +46,7 @@ tnoremap <Esc> <C-\><C-n>
 " Better indenting
 vnoremap < <gv
 vnoremap > >gv
+
+" repeat
+silent! call repeat#set("\<Plug>MyWonderfulMap", v:count)
+

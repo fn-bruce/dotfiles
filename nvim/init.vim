@@ -26,11 +26,17 @@ source $HOME/.config/nvim/plug-config/flake8.vim
 source $HOME/.config/nvim/plug-config/floaterm.vim
 source $HOME/.config/nvim/plug-config/simpylfold.vim
 source $HOME/.config/nvim/plug-config/tagbar.vim
-source $HOME/.config/nvim/plug-config/vim-bufkill.vim
 source $HOME/.config/nvim/plug-config/vim-closetag.vim
 source $HOME/.config/nvim/plug-config/vim-commentary.vim
 source $HOME/.config/nvim/plug-config/vim-nerdtree-syntax-highlight.vim
 source $HOME/.config/nvim/plug-config/vim-tmux-navigator.vim
+source $HOME/.config/nvim/plug-config/vista.vim
+source $HOME/.config/nvim/plug-config/ranger.vim
+source $HOME/.config/nvim/plug-config/window-swap.vim
+source $HOME/.config/nvim/plug-config/better-whitespace.vim
+source $HOME/.config/nvim/plug-config/leetcode.vim
+
+" source $HOME/.config/nvim/plug-config/vim-bufkill.vim
 " source $HOME/.config/nvim/plug-config/indentline.vim
 " source $HOME/.config/nvim/plug-config/neomake.vim
 " source $HOME/.config/nvim/plug-config/nerdtree.vim

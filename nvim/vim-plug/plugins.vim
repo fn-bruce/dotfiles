@@ -14,7 +14,7 @@ Plug 'RRethy/vim-illuminate' " highlight all matches under cursor
 Plug 'alvan/vim-closetag' " Auto close HTML tags
 Plug 'christoomey/vim-titlecase' " Helps titlecasing text
 Plug 'christoomey/vim-tmux-navigator' " Navigate between vim and tmux better
-Plug 'glts/vim-magnum'
+Plug 'glts/vim-magnum' " big int library
 Plug 'glts/vim-radical' " Convert binary, hex, etc..
 Plug 'jiangmiao/auto-pairs' " Insert or delete brackets, parenthesis, quotes in pair
 Plug 'jremmen/vim-ripgrep' " word under cursor will be search if no arg is passed
@@ -29,7 +29,6 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'} " Intellisense
 Plug 'neomake/neomake' " Runs programs asynchronously
 Plug 'norcalli/nvim-colorizer.lua' " Colorizer
 Plug 'nvie/vim-flake8' " Style checker
-Plug 'qpkorr/vim-bufkill' " Kill buffers better
 Plug 'rhysd/git-messenger.vim' " reveal hidden message from Git under cursor quickly
 Plug 'sheerun/vim-polyglot' " better syntax highlighting
 Plug 'skywind3000/asyncrun.vim' " enable to run shell commands in background
@@ -40,7 +39,7 @@ Plug 'tpope/vim-fugitive' " run git commands
 Plug 'tpope/vim-repeat' " Repeat stuff
 Plug 'tpope/vim-rhubarb' " hub for fugitive
 Plug 'tpope/vim-sleuth' " adjusts the indent for each file
-Plug 'tpope/vim-speeddating'" modify dates faster
+Plug 'tpope/vim-speeddating' " modify dates faster
 Plug 'tpope/vim-surround' " Auto surround
 Plug 'turbio/bracey.vim', {'do': 'npm install --prefix server'} " live html server
 Plug 'unblevable/quick-scope' " Text Navigation
@@ -52,7 +51,16 @@ Plug 'ChristianChiarulli/far.vim' " Find and replace
 Plug 'airblade/vim-gitgutter' " shows git diff in sign column
 Plug 'mattn/vim-gist' " Easily Create Gists
 Plug 'mattn/webapi-vim' " api for web
+Plug 'liuchengxu/vista.vim' " view and search LSP symbols, tags
+Plug 'francoiscabrol/ranger.vim' " ranger for vim
+Plug 'mbbill/undotree' " undo time travel
+Plug 'honza/vim-snippets' " premade snippets
+Plug 'wesQ3/vim-windowswap' " swap windows easier
+Plug 'ntpeters/vim-better-whitespace' " better whitespace
+Plug 'metakirby5/codi.vim' " interactive scratch pad
+Plug 'ianding1/leetcode.vim' " leetcode for vim
 
+" Plug 'qpkorr/vim-bufkill' " Kill buffers better
 " Plug 'kien/ctrlp.vim' " Fuzzy finder
 " Plug 'Xuyuanp/nerdtree-git-plugin' " Shows git status flags
 " Plug 'scrooloose/nerdtree' " Navigate files in a tree fashion
