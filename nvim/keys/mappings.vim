@@ -2,8 +2,12 @@
 let mapleader = " "
 nnoremap <Space> <Nop>
 
-" save faster
-" nnoremap <leader>w :w<CR>
+" Makes relative number work good when navigating to different panes
+augroup numbertoggle
+	autocmd!
+	autocmd BufEnter,FocusGained,InsertLeave,WinEnter * if &number | set relativenumber   | endif
+	autocmd BufLeave,FocusLost,InsertEnter,WinLeave   * if &number | set norelativenumber | endif
+augroup END
 
 " Move selected line / block of text in visual mode
 " shift + k to move up

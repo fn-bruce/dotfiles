@@ -33,7 +33,6 @@ Plug 'rhysd/git-messenger.vim' " reveal hidden message from Git under cursor qui
 Plug 'sheerun/vim-polyglot' " better syntax highlighting
 Plug 'skywind3000/asyncrun.vim' " enable to run shell commands in background
 Plug 'skywind3000/asynctasks.vim' " handle building/running/testing/deploying tasks imitating vscode's task system
-Plug 'tmhedberg/SimpylFold' " Fold better
 Plug 'tpope/vim-commentary' " Better commenting commands
 Plug 'tpope/vim-fugitive' " run git commands
 Plug 'tpope/vim-repeat' " Repeat stuff
@@ -60,6 +59,7 @@ Plug 'ntpeters/vim-better-whitespace' " better whitespace
 Plug 'metakirby5/codi.vim' " interactive scratch pad
 Plug 'ianding1/leetcode.vim' " leetcode for vim
 
+" Plug 'tmhedberg/SimpylFold' " Fold better
 " Plug 'qpkorr/vim-bufkill' " Kill buffers better
 " Plug 'kien/ctrlp.vim' " Fuzzy finder
 " Plug 'Xuyuanp/nerdtree-git-plugin' " Shows git status flags
