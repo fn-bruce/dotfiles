@@ -53,7 +53,6 @@ Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/playground'
 
 " Debugging
-Plug 'puremourning/vimspector'
 Plug 'szw/vim-maximizer'
 
 " Compile Async
@@ -146,29 +145,6 @@ nnoremap <leader>y "+y
 vnoremap <leader>y "+y
 nnoremap <leader>Y gg"+yG
 
-" Debugger remaps
-nnoremap <silent><leader>m :MaximizerToggle!<CR>
-nnoremap <leader>dd :call vimspector#Launch()<CR>
-nnoremap <leader>dc :call GotoWindow(g:vimspector_session_windows.code)<CR>
-nnoremap <leader>dt :call GotoWindow(g:vimspector_session_windows.tagpage)<CR>
-nnoremap <leader>dv :call GotoWindow(g:vimspector_session_windows.variables)<CR>
-nnoremap <leader>dw :call GotoWindow(g:vimspector_session_windows.watches)<CR>
-nnoremap <leader>ds :call GotoWindow(g:vimspector_session_windows.stack_trace)<CR>
-nnoremap <leader>do :call GotoWindow(g:vimspector_session_windows.output)<CR>
-nnoremap <leader>de :call vimspector#Reset()<CR>
-
-nnoremap <leader>dtcb :call vimspector#CleanLineBreakpoint()<CR>
-
-nmap <leader>dl <Plug>VimspectorStepInto
-nmap <leader>dj <Plug>VimspectorStepOver
-nmap <leader>dk <Plug>VimspectorStepOut
-nmap <leader>d_ <Plug>VimspectorRestart
-nnoremap <leader>d<space> :call vimspector#Continue()<CR>
-
-nmap <leader>drc <Plug>VimspectorRunToCursor
-nmap <leader>dbp <Plug>VimspectorToggleBreakpoint
-nmap <leader>dcbp <Plug>VimspectorToggleConditionalBreakpoint
-
 " resize
 noremap <leader>+ :vertical resize +5<CR>
 nnoremap <leader>- :vertical resize -5<CR>
@@ -196,8 +172,8 @@ let g:airline_theme='gruvbox'
 
 " completion
 let g:completion_matching_strategy_list = ['exact', 'substring', 'fuzzy']
-lua require('lspconfig').tsserver.setup{ on_attach=require('completion').on_attach }
-lua require('lspconfig').pyls.setup{ on_attach=require('completion').on_attach }
+" lua require('lspconfig').tsserver.setup{ on_attach=require('completion').on_attach }
+" lua require('lspconfig').pyls.setup{ on_attach=require('completion').on_attach }
 let g:completion_confirm_key = "\<C-y>"
 
 " LSP
@@ -213,9 +189,6 @@ EOF
 " fzf
 let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
 let $FZF_DEFAULT_OPTS='--reverse'
-
-" vimspector
-let g:vimspector_enable_mappings = 'HUMAN'
 
 " vim-polyglot
 " let g:python_highlight_space_errors = 0
