@@ -39,9 +39,6 @@ set nohlsearch
 
 call plug#begin('~/.config/nvim/.nvim/plugged')
 
-Plug 'mxw/vim-jsx'
-
-Plug 'mhinz/vim-startify'
 Plug 'preservim/nerdtree'
 
 " LSP
@@ -52,20 +49,8 @@ Plug 'nvim-lua/completion-nvim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/playground'
 
-" Debugging
-Plug 'szw/vim-maximizer'
-
-" Compile Async
-Plug 'tpope/vim-dispatch'
-
 " Man Page View
 Plug 'vim-utils/vim-man'
-
-" TODO
-Plug 'vuciv/vim-bujo'
-
-" Undo viewer
-Plug 'mbbill/undotree'
 
 " Mappings
 Plug 'tpope/vim-repeat'
@@ -92,11 +77,6 @@ Plug 'morhetz/gruvbox'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
-" Docker
-Plug 'ekalinin/Dockerfile.vim'
-
-" Random
-Plug 'ThePrimeagen/vim-be-good'
 
 call plug#end() 
 
@@ -190,24 +170,11 @@ EOF
 let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
 let $FZF_DEFAULT_OPTS='--reverse'
 
-" vim-polyglot
-" let g:python_highlight_space_errors = 0
-
 " vim-repeat
 silent! call repeat#set("\<Plug>RadicalView", v:count)
 silent! call repeat#set("\<Plug>RadicalCoerceToDecimal", v:count)
 silent! call repeat#set("\<Plug>RadicalCoerceToHex", v:count)
 silent! call repeat#set("\<Plug>RadicalCoerceToOctal", v:count)
-
-" vim-dispatch
-autocmd FileType java let b:dispatch = 'javac %'
-
-" Todo
-nmap <C-S> <Plug>BujoAddnormal
-imap <C-S> <Plug>BujoAddinsert
-nmap <C-Q> <Plug>BujoChecknormal
-imap <C-Q> <Plug>BujoCheckinsert
-let g:bujo#todo_file_path = $HOME . "/.cache/bujo"
 
 " closetag
 let g:closetag_filenames = '*.html,*.js,*.ts,*.jsx'
