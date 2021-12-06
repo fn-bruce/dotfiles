@@ -11,8 +11,8 @@ set cmdheight=2                         " More space for displaying messages
 set splitbelow                          " Horizontal splits will automatically be below
 set splitright                          " Vertical splits will automatically be to the right
 set conceallevel=0                      " So that I can see `` in markdown files
-set tabstop=4 softtabstop=4
-set shiftwidth=4                        " Change the number of space characters inserted for indentation
+set tabstop=2 softtabstop=2
+set shiftwidth=2                        " Change the number of space characters inserted for indentation
 set smarttab                            " Makes tabbing smarter will realize you have 2 vs 4
 set expandtab                           " Converts tabs to spaces
 set smartindent                         " Makes indenting smart
@@ -43,14 +43,10 @@ Plug 'preservim/nerdtree'
 
 " LSP
 Plug 'neovim/nvim-lspconfig'
-Plug 'nvim-lua/completion-nvim'
 
 " Neovim Tree sitter
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/playground'
-
-" Man Page View
-Plug 'vim-utils/vim-man'
 
 " Mappings
 Plug 'tpope/vim-repeat'
@@ -67,6 +63,7 @@ Plug 'alvan/vim-closetag'
 " Git
 Plug 'tpope/vim-fugitive'
 
+" FZF
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
@@ -76,7 +73,6 @@ Plug 'morhetz/gruvbox'
 " Airline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-
 
 call plug#end() 
 
@@ -93,29 +89,11 @@ augroup numbertoggle
 	autocmd BufLeave,FocusLost,InsertEnter,WinLeave   * if &number | set norelativenumber | endif
 augroup END
 
-" Indentation for all files
-autocmd BufNewFile,BufRead * set tabstop=2
-autocmd BufNewFile,BufRead * set softtabstop=2
-autocmd BufNewFile,BufRead * set shiftwidth=2
-autocmd BufNewFile,BufRead * set expandtab
-autocmd BufNewFile,BufRead * set autoindent
-
 " Python indentation
 autocmd BufNewFile,BufRead *.py set tabstop=4
 autocmd BufNewFile,BufRead *.py set softtabstop=4
 autocmd BufNewFile,BufRead *.py set shiftwidth=4
 autocmd BufNewFile,BufRead *.py set colorcolumn=80
-
-" HTML, JS, and CSS indentation
-autocmd BufNewFile,BufRead *.html,*.js,*.css set tabstop=2
-autocmd BufNewFile,BufRead *.html,*.js,*.css set shiftwidth=2
-autocmd BufNewFile,BufRead *.html,*.js,*.css set softtabstop=2
-autocmd BufNewFile,BufRead *.html set filetype=htmldjango
-
-" JSON indentation
-autocmd BufNewFile,BufRead *.json set tabstop=2
-autocmd BufNewFile,BufRead *.json set shiftwidth=2
-autocmd BufNewFile,BufRead *.json set softtabstop=2
 
 " Replace currently selected text with default register without yanking it
 vnoremap <leader>p "_dP
@@ -146,15 +124,8 @@ nnoremap <leader>vsd :lua vim.lsp.util.show_line_diagnostics(); vim.lsp.util.sho
 " source init.vim
 nnoremap <Leader><CR> :so ~/.config/nvim/init.vim<CR>
 
-
 " vim-airline-themes
 let g:airline_theme='gruvbox'
-
-" completion
-let g:completion_matching_strategy_list = ['exact', 'substring', 'fuzzy']
-" lua require('lspconfig').tsserver.setup{ on_attach=require('completion').on_attach }
-" lua require('lspconfig').pyls.setup{ on_attach=require('completion').on_attach }
-let g:completion_confirm_key = "\<C-y>"
 
 " LSP
 lua << EOF
