@@ -64,7 +64,7 @@ cmp.setup.cmdline(':', {
   })
 })
 
--- lspconfig
+-- lua
 local sumneko_binary_path = vim.fn.exepath('lua-language-server')
 local sumneko_root_path = vim.fn.fnamemodify(sumneko_binary_path, ':h:h:h')
 
@@ -93,6 +93,10 @@ require('lspconfig').sumneko_lua.setup {
     }
   }
 }
+
+-- python
+require('lspconfig').pylsp.setup{}
+-- require('lspconfig').pyright.setup{}
 
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
