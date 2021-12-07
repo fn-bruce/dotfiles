@@ -40,7 +40,9 @@ set cursorline
 
 call plug#begin('~/.config/nvim/.nvim/plugged')
 
-Plug 'preservim/nerdtree'
+" Explorer
+Plug 'kyazdani42/nvim-tree.lua'
+Plug 'kyazdani42/nvim-web-devicons'
 
 " LSP
 Plug 'neovim/nvim-lspconfig'
