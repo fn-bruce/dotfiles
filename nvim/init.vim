@@ -77,9 +77,9 @@ Plug 'alvan/vim-closetag'
 " Git
 Plug 'tpope/vim-fugitive'
 
-" FZF
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
+" Telescope
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
 
 " Theme
 Plug 'morhetz/gruvbox' 
