@@ -97,13 +97,21 @@ require('lspconfig').sumneko_lua.setup {
 -- c#
 local pid = vim.fn.getpid()
 local omnisharp_bin = "/home/brucen/tools/omnisharp/run"
-require('lspconfig').omnisharp.setup{
-  cmd = { omnisharp_bin, "--languageserver", "--hostPID", tostring(pid) }
+require('lspconfig').omnisharp.setup {
+  cmd = { omnisharp_bin, "--languageserver", "--hostPID", tostring(pid) },
+  capabilities = capabilities
 }
 
 -- python
-require('lspconfig').pylsp.setup{}
+require('lspconfig').pylsp.setup {
+  capabilities = capabilities
+}
 -- require('lspconfig').pyright.setup{}
+
+-- vim
+require('lspconfig').vimls.setup {
+  capabilities = capabilities
+}
 
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
