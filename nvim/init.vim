@@ -71,7 +71,7 @@ Plug 'glts/vim-magnum'
 Plug 'tpope/vim-commentary'
 
 " Automatic
-Plug 'jiangmiao/auto-pairs'
+Plug 'windwp/nvim-autopairs'
 Plug 'alvan/vim-closetag'
 
 " Git

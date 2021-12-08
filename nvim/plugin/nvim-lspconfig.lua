@@ -16,7 +16,10 @@ map('n', '<leader>ca', ':lua vim.lsp.buf.code_action()<CR>')
 map('n', '<leader>sd', ':lua vim.lsp.util.show_line_diagnostics(); vim.lsp.util.show_line_diagnostics()<CR>')
 
 -- nvim-cmp
-local cmp = require'cmp'
+
+local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+local cmp = require('cmp')
+cmp.event:on( 'confirm_done', cmp_autopairs.on_confirm_done({ map_char = {tex = '' } }))
 
 cmp.setup({
   snippet = {
