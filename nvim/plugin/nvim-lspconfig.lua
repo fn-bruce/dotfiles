@@ -102,7 +102,7 @@ require('lspconfig').sumneko_lua.setup {
 
 -- c#
 local pid = vim.fn.getpid()
-local omnisharp_bin = "/home/brucen/tools/omnisharp/run"
+local omnisharp_bin = os.getenv("HOME") .. "/tools/omnisharp/run"
 require('lspconfig').omnisharp.setup {
   cmd = { omnisharp_bin, "--languageserver", "--hostPID", tostring(pid) },
   capabilities = capabilities
