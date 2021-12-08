@@ -107,6 +107,13 @@ require('lspconfig').tsserver.setup {
   capabilities = capabilities
 }
 
+-- html
+local htmlCapabilities = vim.lsp.protocol.make_client_capabilities()
+htmlCapabilities.textDocument.completion.completionItem.snippetSupport = true
+require('lspconfig').html.setup {
+  capabilities = htmlCapabilities
+}
+
 
 -- python
 require('lspconfig').pylsp.setup {
