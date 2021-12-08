@@ -102,6 +102,12 @@ require('lspconfig').omnisharp.setup {
   capabilities = capabilities
 }
 
+-- typescript
+require('lspconfig').tsserver.setup {
+  capabilities = capabilities
+}
+
+
 -- python
 require('lspconfig').pylsp.setup {
   capabilities = capabilities
