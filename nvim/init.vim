@@ -88,6 +88,9 @@ Plug 'morhetz/gruvbox'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
+" Elixir
+Plug 'elixir-editors/vim-elixir'
+
 call plug#end() 
 
 nnoremap <SPACE> <Nop>
