@@ -83,6 +83,8 @@ Plug 'nvim-telescope/telescope.nvim'
 
 " Theme
 Plug 'morhetz/gruvbox' 
+Plug 'ayu-theme/ayu-vim' 
+
 
 " Airline
 Plug 'vim-airline/vim-airline'
@@ -96,7 +98,7 @@ call plug#end()
 nnoremap <SPACE> <Nop>
 let mapleader = " "
 
-colorscheme gruvbox
+colorscheme ayu
 
 " Makes relative number work good when navigating to different panes
 augroup numbertoggle
