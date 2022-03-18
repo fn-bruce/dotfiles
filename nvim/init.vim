@@ -90,10 +90,12 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'morhetz/gruvbox' 
 Plug 'ayu-theme/ayu-vim' 
 
-
 " Airline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+
+" Markdown
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npm install'  }
 
 " Elixir
 Plug 'elixir-editors/vim-elixir'
