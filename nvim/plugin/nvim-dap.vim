@@ -28,11 +28,11 @@ vim.fn.sign_define('DapBreakpoint', {text='🔴', texthl='', linehl='', numhl=''
 vim.fn.sign_define('DapStopped', {text='🟡', texthl='', linehl='', numhl=''})
 EOF
 nnoremap <leader>dh :lua require('dap').toggle_breakpoint()<CR>
-nnoremap <S-k> :lua require('dap').step_out()<CR>
-nnoremap <S-l> :lua require('dap').step_into()<CR>
-nnoremap <S-j> :lua require('dap').step_over()<CR>
 nnoremap <leader>ds :lua require('dap').stop()<CR>
 nnoremap <F5> :lua require('dap').continue()<CR>
+nnoremap <F10> :lua require('dap').step_over()<CR>
+nnoremap <F11> :lua require('dap').step_into()<CR>
+nnoremap <F12> :lua require('dap').step_out()<CR>
 nnoremap <leader>dk :lua require('dap').up()<CR>
 nnoremap <leader>dj :lua require('dap').down()<CR>
 nnoremap <leader>d_ :lua require('dap').run_last()<CR><C-w>l
