@@ -77,6 +77,11 @@ Plug 'alvan/vim-closetag'
 " Git
 Plug 'tpope/vim-fugitive'
 
+" Debugging
+Plug 'mfussenegger/nvim-dap'
+Plug 'nvim-telescope/telescope-dap.nvim'
+Plug 'theHamsta/nvim-dap-virtual-text'
+
 " Telescope
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'

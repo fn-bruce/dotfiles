@@ -144,6 +144,12 @@ require('lspconfig').vimls.setup {
   capabilities = capabilities
 }
 
+-- emmet
+require('lspconfig').emmet_ls.setup {
+  capabilities = capabilities,
+  filetypes = { "html", "css", "typescriptreact", "javascriptreact" },
+}
+
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
     -- Disable signs
