@@ -105,6 +105,7 @@ call plug#end()
 nnoremap <SPACE> <Nop>
 let mapleader = " "
 
+let ayucolor="mirage"
 colorscheme ayu
 
 " Makes relative number work good when navigating to different panes
