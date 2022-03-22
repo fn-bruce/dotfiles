@@ -1,6 +1,7 @@
 syntax on
 filetype plugin indent on
 
+
 set mouse=a
 set hidden                              " Required to keep multiple buffers open multiple buffers
 set nowrap                              " Display long lines as just one line
