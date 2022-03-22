@@ -110,3 +110,6 @@ source $ZSH/oh-my-zsh.sh
 
 # Created by `pipx` on 2022-03-22 06:10:20
 export PATH="$PATH:$HOME/.local/bin"
+export PATH="$PATH:$HOME/projects/github/lua-language-server/bin"
+
+alias luamake="$HOME/projects/github/lua-language-server/3rd/luamake/luamake"
