@@ -105,7 +105,7 @@ call plug#end()
 nnoremap <SPACE> <Nop>
 let mapleader = " "
 
-let ayucolor="mirage"
+let ayucolor="dark"
 colorscheme ayu
 
 " Makes relative number work good when navigating to different panes
@@ -133,3 +133,7 @@ vnoremap K :m '<-2<CR>gv=gv
 
 " source init.vim
 nnoremap <Leader><CR> :so ~/.config/nvim/init.vim<CR>
+
+" disable providers
+let g:loaded_perl_provider = 0
+let g:loaded_python_provider = 0
