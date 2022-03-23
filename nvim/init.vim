@@ -76,6 +76,7 @@ Plug 'alvan/vim-closetag'
 
 " Git
 Plug 'tpope/vim-fugitive'
+Plug 'kdheepak/lazygit.nvim'
 
 " Debugging
 Plug 'mfussenegger/nvim-dap'
