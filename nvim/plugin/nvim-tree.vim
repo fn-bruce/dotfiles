@@ -1,4 +1,4 @@
-nnoremap <leader>e :NvimTreeToggle<CR>
+" nnoremap <leader>e :NvimTreeToggle<CR>
 
 " LSP
 lua << EOF

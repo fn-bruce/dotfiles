@@ -23,7 +23,7 @@ set laststatus=2                        " Always display the status line
 set number                              " Line numbers
 set relativenumber                      " Display relative numbers to current cursor location
 set background=dark                     " tell vim what the background color looks like
-set showtabline=2                       " Always show tabs
+" set showtabline=2                       " Always show tabs
 set noshowmode                          " We don't need to see things like -- INSERT -- anymore
 set nobackup                            " This is recommended by coc
 set nowritebackup                       " This is recommended by coc
@@ -45,6 +45,7 @@ call plug#begin('~/.config/nvim/.nvim/plugged')
 " Explorer
 Plug 'kyazdani42/nvim-tree.lua'
 Plug 'kyazdani42/nvim-web-devicons'
+Plug 'kevinhwang91/rnvimr', {'do': 'make sync'}
 
 " LSP
 Plug 'neovim/nvim-lspconfig'
