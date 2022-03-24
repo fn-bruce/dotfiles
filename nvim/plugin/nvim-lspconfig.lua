@@ -123,6 +123,11 @@ require('lspconfig').emmet_ls.setup {
   filetypes = { "html", "css", "typescriptreact", "javascriptreact" },
 }
 
+-- docker
+require('lspconfig').dockerls.setup {
+  capabilities = capabilities,
+}
+
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
     -- Disable signs
