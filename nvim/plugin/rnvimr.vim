@@ -1,3 +1,5 @@
 let g:rnvimr_ex_enable = 1
+let g:rnvimr_enable_picker = 1
 
-nnoremap <leader>r :RnvimrToggle<CR>
+nnoremap <leader>e :RnvimrToggle<CR>
+
