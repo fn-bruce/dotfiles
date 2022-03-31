@@ -94,9 +94,9 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'morhetz/gruvbox'
 Plug 'ayu-theme/ayu-vim'
 
-" Airline
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+" Status Bar
+Plug 'nvim-lualine/lualine.nvim'
+Plug 'kyazdani42/nvim-web-devicons'
 
 " Markdown
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npm install'  }

@@ -109,7 +109,7 @@ require('lspconfig').bashls.setup {
 
 -- elixir
 require('lspconfig').elixirls.setup {
-  cmd = { os.getenv("HOME") .. "/tools/elixir-ls/language_server.sh" };
+  cmd = { os.getenv("HOME") .. "/projects/github/elixir-ls/language_server.sh" };
 }
 
 -- vim
