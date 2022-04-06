@@ -141,3 +141,6 @@ nnoremap <Leader><CR> :so ~/.config/nvim/init.vim<CR>
 " disable providers
 let g:loaded_perl_provider = 0
 let g:loaded_python_provider = 0
+
+" netrw
+let g:netrw_browse_split = 2

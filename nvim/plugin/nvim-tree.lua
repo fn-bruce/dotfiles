@@ -1,7 +1,5 @@
-" nnoremap <leader>e :NvimTreeToggle<CR>
+vim.api.nvim_set_keymap('n', '<leader>e', ':NvimTreeToggle<CR>', {noremap = true})
 
-" LSP
-lua << EOF
 require('nvim-tree').setup {
   actions = {
     open_file = {
@@ -9,4 +7,3 @@ require('nvim-tree').setup {
     },
   },
 }
-EOF
