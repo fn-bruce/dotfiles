@@ -31,7 +31,7 @@ set shortmess+=c                        " Don't pass messages to |ins-completion
 set signcolumn=yes                      " Always show the signcolumn, otherwise it would shift the text each time
 set updatetime=50                       " Faster completion
 set incsearch
-set guifont=Hack\ Nerd\ Font\ Mono
+set guifont=Hack\ Nerd\ Font
 set scrolloff=8
 set completeopt=menuone,noinsert,noselect
 set undodir=~/.config/nvim/.nvim/undodir
@@ -138,12 +138,6 @@ nnoremap <leader>- :vertical resize -5<CR>
 vnoremap J :m '>+1<CR>gv=gv
 vnoremap K :m '<-2<CR>gv=gv
 
-" source init.vim
-nnoremap <Leader><CR> :so ~/.config/nvim/init.vim<CR>
-
 " disable providers
 let g:loaded_perl_provider = 0
 let g:loaded_python_provider = 0
-
-" netrw
-let g:netrw_browse_split = 2
