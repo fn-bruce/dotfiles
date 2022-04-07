@@ -94,6 +94,9 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'morhetz/gruvbox'
 Plug 'ayu-theme/ayu-vim'
 
+" Indent Lines
+Plug 'lukas-reineke/indent-blankline.nvim'
+
 " Status Bar
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'kyazdani42/nvim-web-devicons'
