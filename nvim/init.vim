@@ -108,6 +108,9 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npm install'  }
 " Elixir
 Plug 'elixir-editors/vim-elixir'
 
+" LaTex
+Plug 'lervag/vimtex'
+
 call plug#end()
 
 nnoremap <SPACE> <Nop>
