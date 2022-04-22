@@ -3,8 +3,8 @@ filetype plugin indent on
 
 set mouse=a
 set hidden                              " Required to keep multiple buffers open multiple buffers
-" set nowrap                              " Display long lines as just one line
-set wrap
+set nowrap                              " Display long lines as just one line
+" set wrap
 set showbreak=↳\                        " new line arrow
 set encoding=utf-8                      " The encoding displayed
 set pumheight=10                        " Makes popup menu smaller
@@ -34,7 +34,7 @@ set updatetime=50                       " Faster completion
 set incsearch
 set guifont=Hack\ Nerd\ Font
 set scrolloff=8
-set completeopt=menuone,noinsert,noselect
+set completeopt=menu,menuone,noselect
 set undodir=~/.config/nvim/.nvim/undodir
 set undofile
 set termguicolors
@@ -60,8 +60,9 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
 
 " Snippet
-Plug 'hrsh7th/vim-vsnip'
-Plug 'hrsh7th/vim-vsnip-integ'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'rafamadriz/friendly-snippets'
 
 " Neovim Tree sitter
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -102,6 +103,9 @@ Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'kyazdani42/nvim-web-devicons'
 
+" Start Up Screen
+Plug 'goolord/alpha-nvim'
+
 " Markdown
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npm install'  }
 
@@ -110,6 +114,10 @@ Plug 'elixir-editors/vim-elixir'
 
 " LaTex
 Plug 'lervag/vimtex'
+
+" Zen Mode
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 
 call plug#end()
 
@@ -145,3 +153,8 @@ vnoremap K :m '<-2<CR>gv=gv
 " disable providers
 let g:loaded_perl_provider = 0
 let g:loaded_python_provider = 0
+
+" file indents
+autocmd BufNewFile,BufRead *.cs set tabstop=4
+autocmd BufNewFile,BufRead *.cs set softtabstop=4
+autocmd BufNewFile,BufRead *.cs set shiftwidth=4
