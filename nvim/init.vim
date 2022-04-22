@@ -157,4 +157,5 @@ let g:loaded_python_provider = 0
 " file indents
 autocmd BufNewFile,BufRead *.cs set tabstop=4
 autocmd BufNewFile,BufRead *.cs set softtabstop=4
+
 autocmd BufNewFile,BufRead *.cs set shiftwidth=4
