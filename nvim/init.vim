@@ -3,9 +3,10 @@ filetype plugin indent on
 
 set mouse=a
 set hidden                              " Required to keep multiple buffers open multiple buffers
-set nowrap                              " Display long lines as just one line
-" set wrap
-set showbreak=↳\                        " new line arrow
+set wrap
+set breakindent
+set breakindentopt=sbr
+set showbreak=↪>\ 
 set encoding=utf-8                      " The encoding displayed
 set pumheight=10                        " Makes popup menu smaller
 set fileencoding=utf-8                  " The encoding written to file
@@ -50,6 +51,7 @@ Plug 'kevinhwang91/rnvimr', {'do': 'make sync'}
 
 " LSP
 Plug 'neovim/nvim-lspconfig'
+Plug 'glepnir/lspsaga.nvim'
 
 " Completion
 Plug 'neovim/nvim-lspconfig'
@@ -94,7 +96,8 @@ Plug 'nvim-telescope/telescope.nvim'
 
 " Theme
 Plug 'morhetz/gruvbox'
-Plug 'ayu-theme/ayu-vim'
+" Plug 'ayu-theme/ayu-vim'
+Plug 'Shatur/neovim-ayu'
 
 " Indent Lines
 Plug 'lukas-reineke/indent-blankline.nvim'
@@ -118,6 +121,9 @@ Plug 'lervag/vimtex'
 " Zen Mode
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
+
+" Signature Help Enhances
+Plug 'ray-x/lsp_signature.nvim'
 
 call plug#end()
 
@@ -157,5 +163,21 @@ let g:loaded_python_provider = 0
 " file indents
 autocmd BufNewFile,BufRead *.cs set tabstop=4
 autocmd BufNewFile,BufRead *.cs set softtabstop=4
-
 autocmd BufNewFile,BufRead *.cs set shiftwidth=4
+
+" gray
+highlight! CmpItemAbbrDeprecated guibg=NONE gui=strikethrough guifg=#808080
+" blue
+highlight! CmpItemAbbrMatch guibg=NONE guifg=#569CD6
+highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=#569CD6
+" light blue
+highlight! CmpItemKindVariable guibg=NONE guifg=#9CDCFE
+highlight! CmpItemKindInterface guibg=NONE guifg=#9CDCFE
+highlight! CmpItemKindText guibg=NONE guifg=#9CDCFE
+" pink
+highlight! CmpItemKindFunction guibg=NONE guifg=#C586C0
+highlight! CmpItemKindMethod guibg=NONE guifg=#C586C0
+" front
+highlight! CmpItemKindKeyword guibg=NONE guifg=#D4D4D4
+highlight! CmpItemKindProperty guibg=NONE guifg=#D4D4D4
+highlight! CmpItemKindUnit guibg=NONE guifg=#D4D4D4

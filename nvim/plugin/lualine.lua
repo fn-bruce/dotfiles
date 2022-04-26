@@ -1,8 +1,7 @@
-local custom_theme = require('lualine.themes.ayu_dark')
 require('lualine').setup {
   options = {
     icons_enabled = true,
-    theme = custom_theme,
+    theme = 'ayu',
     component_separators = { left = '|', right = '|'},
     section_separators = { left = '', right = ''},
     disabled_filetypes = {},
