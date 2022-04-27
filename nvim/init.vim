@@ -6,7 +6,7 @@ set hidden                              " Required to keep multiple buffers open
 set wrap
 set breakindent
 set breakindentopt=sbr
-set showbreak=↪>\ 
+set showbreak=↪\ 
 set encoding=utf-8                      " The encoding displayed
 set pumheight=10                        " Makes popup menu smaller
 set fileencoding=utf-8                  " The encoding written to file
