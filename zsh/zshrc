@@ -113,5 +113,7 @@ export RANGER_DEVICONS_SEPARATOR=" "
 # Created by `pipx` on 2022-03-22 06:10:20
 export PATH="$PATH:$HOME/.local/bin"
 export PATH="$PATH:$HOME/projects/github/lua-language-server/bin"
+export PATH="$PATH:/Users/brucenguyen/.dotnet/tools"
 
 alias luamake="$HOME/projects/github/lua-language-server/3rd/luamake/luamake"
+alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
