@@ -1,9 +1,10 @@
 local dap = require('dap')
 
+-- JavaScript
 dap.adapters.node2 = {
   type = 'executable',
   command = 'node',
-  args = {os.getenv('HOME') .. '/dev/microsoft/vscode-node-debug2/out/src/nodeDebug.js'},
+  args = {os.getenv('HOME') .. '/tools/vscode-node-debug2/out/src/nodeDebug.js'},
 }
 dap.configurations.javascript = {
   {
@@ -24,12 +25,31 @@ dap.configurations.javascript = {
     processId = require'dap.utils'.pick_process,
   },
 }
+
+-- C#
+dap.adapters.coreclr = {
+  type = 'executable',
+  command = os.getenv('HOME') .. '/tools/netcoredbg/netcoredbg',
+  args = {'--interpreter=vscode'}
+}
+
+dap.configurations.cs = {
+  {
+    type = 'coreclr',
+    name = 'launch - netcoredbg',
+    request = 'launch',
+    program = function()
+      return vim.fn.input('Path to dll: ', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+    end,
+  }
+}
+
 vim.fn.sign_define('DapBreakpoint', {text='🔴', texthl='', linehl='', numhl=''})
 vim.fn.sign_define('DapStopped', {text='🟡', texthl='', linehl='', numhl=''})
 
-vim.api.nvim_set_keymap('n', '<leader>dh', ":lua require('dap').toggle_breakpoint()<CR>", {noremap = true, silent = true})
 vim.api.nvim_set_keymap('n', '<leader>ds', ":lua require('dap').stop()<CR>", {noremap = true, silent = true})
 vim.api.nvim_set_keymap('n', '<F5>', ":lua require('dap').continue()<CR>", {noremap = true, silent = true})
+vim.api.nvim_set_keymap('n', '<F9>', ":lua require('dap').toggle_breakpoint()<CR>", {noremap = true, silent = true})
 vim.api.nvim_set_keymap('n', '<F10>', ":lua require('dap').step_over()<CR>", {noremap = true, silent = true})
 vim.api.nvim_set_keymap('n', '<F11>', ":lua require('dap').step_into()<CR>", {noremap = true, silent = true})
 vim.api.nvim_set_keymap('n', '<F12>', ":lua require('dap').step_out()<CR>", {noremap = true, silent = true})

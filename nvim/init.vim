@@ -53,6 +53,9 @@ Plug 'kevinhwang91/rnvimr', {'do': 'make sync'}
 Plug 'neovim/nvim-lspconfig'
 Plug 'glepnir/lspsaga.nvim'
 
+" Diagnostics
+Plug 'folke/trouble.nvim'
+
 " Completion
 Plug 'neovim/nvim-lspconfig'
 Plug 'hrsh7th/cmp-nvim-lsp'
@@ -122,6 +125,9 @@ Plug 'lervag/vimtex'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 
+" Terminal
+Plug 'akinsho/toggleterm.nvim'
+
 " Signature Help Enhances
 Plug 'ray-x/lsp_signature.nvim'
 
@@ -165,6 +171,10 @@ autocmd BufNewFile,BufRead *.cs set tabstop=4
 autocmd BufNewFile,BufRead *.cs set softtabstop=4
 autocmd BufNewFile,BufRead *.cs set shiftwidth=4
 
+autocmd BufNewFile,BufRead,BufEnter *.rs set tabstop=4
+autocmd BufNewFile,BufRead,BufEnter *.rs set softtabstop=4
+autocmd BufNewFile,BufRead,BufEnter *.rs set shiftwidth=4
+
 " gray
 highlight! CmpItemAbbrDeprecated guibg=NONE gui=strikethrough guifg=#808080
 " blue
@@ -181,3 +191,34 @@ highlight! CmpItemKindMethod guibg=NONE guifg=#C586C0
 highlight! CmpItemKindKeyword guibg=NONE guifg=#D4D4D4
 highlight! CmpItemKindProperty guibg=NONE guifg=#D4D4D4
 highlight! CmpItemKindUnit guibg=NONE guifg=#D4D4D4
+
+augroup CppRun
+  autocmd!
+  autocmd filetype cpp nnoremap <F5> :wa<CR>:!tmux split-window 'g++ % ; ./a.out ; read'<CR><CR>
+  autocmd filetype cpp inoremap <F5> <ESC>:wa<CR>:!tmux split-window 'g++ % ; ./a.out ; read'<CR><CR>
+augroup END
+
+augroup DotNetRun
+  autocmd!
+  autocmd filetype cs nnoremap <F5> :wa<CR>:!tmux split-window 'dotnet run ; read'<CR><CR>
+  autocmd filetype cs inoremap <F5> <ESC>:wa<CR>:!tmux split-window 'dotnet run ; read'<CR><CR>
+augroup END
+
+augroup CargoRun
+  autocmd!
+  autocmd filetype rust nnoremap <F5> :wa<CR>:!tmux split-window 'cargo run ; read'<CR><CR>
+  autocmd filetype rust inoremap <F5> <ESC>:wa<CR>:!tmux split-window 'cargo run ; read'<CR><CR>
+augroup END
+
+" terminal config
+inoremap <C-h> <C-\><C-N><C-w>h
+inoremap <C-j> <C-\><C-N><C-w>j
+inoremap <C-k> <C-\><C-N><C-w>k
+inoremap <C-l> <C-\><C-N><C-w>l
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" autocmd TermOpen * setlocal nonumber norelativenumber
+autocmd TermOpen,BufWinEnter,WinEnter term://* startinsert

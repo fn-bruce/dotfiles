@@ -30,7 +30,7 @@ local on_attach = function(client, bufnr)
   require("lsp_signature").on_attach({
     bind = true,
     handler_opts = {
-      border = "rounded"
+      border = "single"
     },
     hi_parameter = "IncSearch",
   }, bufnr)
@@ -189,12 +189,14 @@ require('lspconfig').tsserver.setup {
 local htmlCapabilities = vim.lsp.protocol.make_client_capabilities()
 htmlCapabilities.textDocument.completion.completionItem.snippetSupport = true
 require('lspconfig').html.setup {
+  on_attach = on_attach,
   capabilities = htmlCapabilities
 }
 
 -- python
 require('lspconfig').pylsp.setup {
-  capabilities = capabilities
+  on_attach = on_attach,
+  capabilities = capabilities,
 }
 -- require('lspconfig').pyright.setup{}
 
@@ -224,9 +226,39 @@ require('lspconfig').dockerls.setup {
   capabilities = capabilities,
 }
 
+-- rust
+require('lspconfig').rust_analyzer.setup {
+  capabilities = capabilities,
+  on_attach = on_attach,
+}
+
+local border = {
+      {"🭽", "FloatBorder"},
+      {"▔", "FloatBorder"},
+      {"🭾", "FloatBorder"},
+      {"▕", "FloatBorder"},
+      {"🭿", "FloatBorder"},
+      {"▁", "FloatBorder"},
+      {"🭼", "FloatBorder"},
+      {"▏", "FloatBorder"},
+}
+vim.lsp.handlers["textDocument/hover"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border})
+vim.lsp.handlers["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border})
+
+
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
     -- Disable signs
-    signs = false,
+    signs = true,
   }
 )
+
+-- border
+local win = require('lspconfig.ui.windows')
+local _default_opts = win.default_opts
+
+win.default_opts = function(options)
+  local opts = _default_opts(options)
+  opts.border = 'single'
+  return opts
+end
