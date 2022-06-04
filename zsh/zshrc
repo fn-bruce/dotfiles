@@ -100,6 +100,7 @@ source $ZSH/oh-my-zsh.sh
 # export ARCHFLAGS="-arch x86_64"
 export EDITOR="/opt/homebrew/bin/nvim"
 export RANGER_DEVICONS_SEPARATOR=" "
+export DOTNET_ROOT="/usr/local/share/dotnet"
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
