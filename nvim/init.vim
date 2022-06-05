@@ -47,7 +47,6 @@ call plug#begin('~/.config/nvim/.nvim/plugged')
 " Explorer
 Plug 'kyazdani42/nvim-tree.lua'
 Plug 'kyazdani42/nvim-web-devicons'
-Plug 'kevinhwang91/rnvimr', {'do': 'make sync'}
 
 " LSP
 Plug 'neovim/nvim-lspconfig'
@@ -114,9 +113,6 @@ Plug 'goolord/alpha-nvim'
 
 " Markdown
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npm install'  }
-
-" Elixir
-Plug 'elixir-editors/vim-elixir'
 
 " LaTex
 Plug 'lervag/vimtex'
@@ -210,7 +206,7 @@ augroup CargoRun
   autocmd filetype rust inoremap <F5> <ESC>:wa<CR>:!tmux split-window 'cargo run ; read'<CR><CR>
 augroup END
 
-" terminal config
+" window movement
 inoremap <C-h> <C-\><C-N><C-w>h
 inoremap <C-j> <C-\><C-N><C-w>j
 inoremap <C-k> <C-\><C-N><C-w>k
@@ -219,6 +215,12 @@ nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
+
+" split vertical
+nnoremap <leader>% :vertical split<CR>
+
+" split horizontal
+nnoremap <leader>" :split<CR>
 
 " autocmd TermOpen * setlocal nonumber norelativenumber
 autocmd TermOpen,BufWinEnter,WinEnter term://* startinsert
