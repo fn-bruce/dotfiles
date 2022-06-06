@@ -52,9 +52,6 @@ Plug 'kyazdani42/nvim-web-devicons'
 Plug 'neovim/nvim-lspconfig'
 Plug 'glepnir/lspsaga.nvim'
 
-" Diagnostics
-Plug 'folke/trouble.nvim'
-
 " Completion
 Plug 'neovim/nvim-lspconfig'
 Plug 'hrsh7th/cmp-nvim-lsp'
@@ -127,6 +124,9 @@ Plug 'akinsho/toggleterm.nvim'
 " Signature Help Enhances
 Plug 'ray-x/lsp_signature.nvim'
 
+" C#
+Plug 'Hoffs/omnisharp-extended-lsp.nvim'
+
 call plug#end()
 
 nnoremap <SPACE> <Nop>
@@ -155,8 +155,8 @@ noremap <leader>+ :vertical resize +5<CR>
 nnoremap <leader>- :vertical resize -5<CR>
 
 " move block vertically
-vnoremap J :m '>+1<CR>gv=gv
-vnoremap K :m '<-2<CR>gv=gv
+vnoremap <silent> J :m '>+1<CR>gv=gv
+vnoremap <silent> K :m '<-2<CR>gv=gv
 
 " disable providers
 let g:loaded_perl_provider = 0
@@ -194,7 +194,7 @@ augroup CppRun
   autocmd filetype cpp inoremap <F5> <ESC>:wa<CR>:!tmux split-window 'g++ % ; ./a.out ; read'<CR><CR>
 augroup END
 
-augroup DotNetRun
+augroup DotNetRemaps
   autocmd!
   autocmd filetype cs nnoremap <F5> :wa<CR>:!tmux split-window 'dotnet run ; read'<CR><CR>
   autocmd filetype cs inoremap <F5> <ESC>:wa<CR>:!tmux split-window 'dotnet run ; read'<CR><CR>
