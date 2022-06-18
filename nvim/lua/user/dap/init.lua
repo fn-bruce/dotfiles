@@ -21,19 +21,19 @@ dap_install.config("python", {})
 
 -- add other configs here
 local languages = {
-  "python",
-  "cs",
+	"python",
+	"cs",
 }
 for _, language in pairs(languages) do
-  local adapter = language
-  local configuration = language
+	local adapter = language
+	local configuration = language
 
-  if adapter == "cs" then
-    adapter = "coreclr"
-  end
+	if adapter == "cs" then
+		adapter = "coreclr"
+	end
 
-  dap.adapters[adapter] = require("user.dap.adapters." .. language)
-  dap.configurations[configuration] = require("user.dap.configurations." .. language)
+	dap.adapters[adapter] = require("user.dap.adapters." .. language)
+	dap.configurations[configuration] = require("user.dap.configurations." .. language)
 end
 
 dapui.setup({})
