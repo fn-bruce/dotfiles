@@ -12,6 +12,10 @@ local servers = {
   "bashls",
   "jsonls",
   "yamlls",
+  "rust_analyzer",
+  "dockerls",
+  "omnisharp",
+  "clangd",
 }
 
 lsp_installer.setup()
@@ -37,6 +41,11 @@ for _, server in pairs(servers) do
   if server == "pyright" then
     local pyright_opts = require "user.lsp.settings.pyright"
     opts = vim.tbl_deep_extend("force", pyright_opts, opts)
+  end
+
+  if server == "omnisharp" then
+    local omnisharp_opts = require "user.lsp.settings.omnisharp"
+    opts = vim.tbl_deep_extend("force", omnisharp_opts, opts)
   end
 
   lspconfig[server].setup(opts)
