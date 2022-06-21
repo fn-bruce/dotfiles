@@ -56,6 +56,12 @@ return packer.startup(function(use)
 	use({ "lukas-reineke/indent-blankline.nvim", commit = "6177a59552e35dfb69e1493fd68194e673dc3ee2" })
 	use({ "goolord/alpha-nvim", commit = "ef27a59e5b4d7b1c2fe1950da3fe5b1c5f3b4c94" })
 	use({ "JoosepAlviste/nvim-ts-context-commentstring", commit = "88343753dbe81c227a1c1fd2c8d764afb8d36269" })
+	use({ "NTBBloodbath/rest.nvim", commit = "e5f68db73276c4d4d255f75a77bbe6eff7a476ef" })
+	use({ "ellisonleao/glow.nvim", commit = "900042f7dda528cb980b7f1056ed7c21d4402826" })
+	use({
+		"iamcco/markdown-preview.nvim",
+		run = "cd app && npm install",
+	})
 
 	-- Colorschemes
 	use({ "folke/tokyonight.nvim", commit = "8223c970677e4d88c9b6b6d81bda23daf11062bb" })
@@ -81,7 +87,11 @@ return packer.startup(function(use)
 	use({ "Hoffs/omnisharp-extended-lsp.nvim", commit = "e0dbe96194465f26e2cfff5d170ba8c88287e329" })
 
 	-- Telescope
-	use({ "nvim-telescope/telescope.nvim", commit = "d96eaa914aab6cfc4adccb34af421bdd496468b0" })
+	use({
+		"nvim-telescope/telescope.nvim",
+		commit = "d96eaa914aab6cfc4adccb34af421bdd496468b0",
+		run = "./install.py --tern-completer",
+	})
 
 	-- Treesitter
 	use({
