@@ -25,6 +25,6 @@ if not vim.g.vscode then
   require("user.rest")
   require("user.glow")
   require("user.markdown-preview")
-  require("user.crates")
+  require("user.crates-nvim")
 end
 

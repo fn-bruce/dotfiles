@@ -16,6 +16,7 @@ local servers = {
 	"dockerls",
 	"omnisharp",
 	"clangd",
+  "taplo",
 }
 
 lsp_installer.setup()
