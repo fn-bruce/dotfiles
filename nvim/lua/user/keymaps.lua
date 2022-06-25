@@ -83,4 +83,9 @@ keymap("n", "<leader>rp", "<Plug>RestNvimPreview", opts)
 keymap("n", "<leader>rl", "<Plug>RestNvimLast", opts)
 
 -- glow
+keymap("n", "<leader>mg", "<cmd>Glow<CR>", opts)
 keymap("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", opts)
+
+-- illuminate
+keymap("n", "<c-n>", '<cmd>lua require"illuminate".next_reference{wrap=true}<cr>', opts)
+keymap("n", "<c-p>", '<cmd>lua require"illuminate".next_reference{reverse=true,wrap=true}<cr>', opts)
