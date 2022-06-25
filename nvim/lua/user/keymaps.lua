@@ -89,3 +89,21 @@ keymap("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", opts)
 -- illuminate
 keymap("n", "<c-n>", '<cmd>lua require"illuminate".next_reference{wrap=true}<cr>', opts)
 keymap("n", "<c-p>", '<cmd>lua require"illuminate".next_reference{reverse=true,wrap=true}<cr>', opts)
+
+-- crates
+keymap("n", "<leader>ct", "<cmd>lua require('crates').toggle()<cr>", opts)
+keymap("n", "<leader>cr", "<cmd>lua require('crates').reload()<cr>", opts)
+
+keymap("n", "<leader>cv", "<cmd>lua require('crates').show_versions_popup()<cr>", opts)
+keymap("n", "<leader>cf", "<cmd>lua require('crates').show_features_popup()<cr>", opts)
+
+keymap("n", "<leader>cu", "<cmd>lua require('crates').update_crate()<cr>", opts)
+keymap("v", "<leader>cu", "<cmd>lua require('crates').update_crates()<cr>", opts)
+keymap("n", "<leader>ca", "<cmd>lua require('crates').update_all_crates()<cr>", opts)
+keymap("n", "<leader>cU", "<cmd>lua require('crates').upgrade_crate()<cr>", opts)
+keymap("v", "<leader>cU", "<cmd>lua require('crates').upgrade_crates()<cr>", opts)
+keymap("n", "<leader>cA", "<cmd>lua require('crates').upgrade_all_crates()<cr>", opts)
+keymap("n", "<leader>cH", "<cmd>lua require('crates').open_homepage()<cr>", opts)
+keymap("n", "<leader>cR", "<cmd>lua require('crates').open_repository()<cr>", opts)
+keymap("n", "<leader>cD", "<cmd>lua require('crates').open_documentation()<cr>", opts)
+keymap("n", "<leader>cC", "<cmd>lua require('crates').open_crates_io()<cr>", opts)
