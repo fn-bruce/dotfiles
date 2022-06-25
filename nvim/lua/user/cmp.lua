@@ -18,29 +18,39 @@ end
 local kind_icons = {
 	Text = "",
 	Method = "",
-	Function = "",
-	Constructor = "",
-	Field = "",
-	Variable = "",
-	Class = "",
+	Function = "",
+	Constructor = "",
+	Field = "ﰠ",
+	Variable = "",
+	Class = "ﴯ",
 	Interface = "",
-	Module = "",
+	Module = "",
 	Property = "",
-	Unit = "",
+	Unit = "塞",
 	Value = "",
 	Enum = "",
-	Keyword = "",
-	Snippet = "",
+	Keyword = "",
+	Snippet = "",
 	Color = "",
 	File = "",
-	Reference = "",
+	Reference = "",
 	Folder = "",
 	EnumMember = "",
-	Constant = "",
-	Struct = "",
+	Constant = "",
+	Struct = "פּ",
 	Event = "",
 	Operator = "",
 	TypeParameter = "",
+}
+
+local source_mapping = {
+  nvim_lsp = "[LSP]",
+  nvim_lua = "[Lua]",
+  luasnip = "[Snip]",
+  buffer = "[Buffer]",
+  path = "[Path]",
+  emoji = "[Emoji]",
+  cmp_tabnine = "[TN]",
 }
 
 cmp.setup({
@@ -96,15 +106,18 @@ cmp.setup({
 		fields = { "kind", "abbr", "menu" },
 		format = function(entry, vim_item)
 			vim_item.kind = string.format("%s", kind_icons[vim_item.kind])
-			vim_item.menu = ({
 
-				nvim_lsp = "",
-				nvim_lua = "",
-				luasnip = "",
-				buffer = "",
-				path = "",
-				emoji = "",
-			})[entry.source.name]
+			local menu = source_mapping[entry.source.name]
+
+      -- cmp_tabnine setup
+			if entry.source.name == "cmp_tabnine" then
+				if entry.completion_item.data ~= nil and entry.completion_item.data.detail ~= nil then
+					menu = entry.completion_item.data.detail .. " " .. menu
+				end
+				vim_item.kind = ""
+			end
+
+			vim_item.menu = menu
 			return vim_item
 		end,
 	},
@@ -114,7 +127,8 @@ cmp.setup({
 		{ name = "luasnip" },
 		{ name = "buffer" },
 		{ name = "path" },
-    { name = "crates" },
+		{ name = "crates" },
+		{ name = "cmp_tabnine" },
 	},
 	confirm_opts = {
 		behavior = cmp.ConfirmBehavior.Replace,

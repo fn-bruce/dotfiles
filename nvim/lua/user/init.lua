@@ -26,5 +26,6 @@ if not vim.g.vscode then
   require("user.glow")
   require("user.markdown-preview")
   require("user.crates-nvim")
+  require("user.cmp-tabnine")
 end
 

@@ -62,6 +62,7 @@ return packer.startup(function(use)
 	use({ "rust-lang/rust.vim", commit = "4aa69b84c8a58fcec6b6dad6fe244b916b1cf830" })
 	use({ "mattn/webapi-vim", commit = "e9fdce27dc542f491c034a288bce5d74a79fb92d" })
 	use({ "Saecki/crates.nvim", commit = "78a69d206b68be719eb174ea3cb8b4d18c10123d" })
+	use({ "tzachar/cmp-tabnine", run = "./install.sh" })
 
 	-- Colorschemes
 	use({ "folke/tokyonight.nvim", commit = "8223c970677e4d88c9b6b6d81bda23daf11062bb" })

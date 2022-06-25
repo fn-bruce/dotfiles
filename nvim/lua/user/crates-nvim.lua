@@ -15,13 +15,13 @@ crates.setup({
 	notification_title = "Crates",
 	disable_invalid_feature_diagnostic = false,
 	text = {
-		loading = "   Loading",
-		version = "   %s",
-		prerelease = "   %s",
-		yanked = "   %s",
-		nomatch = "   No match",
-		upgrade = "   %s",
-		error = "   Error fetching crate",
+		loading = "  Loading ",
+		version = "  %s ",
+		prerelease = "  %s ",
+		yanked = "  %s ",
+		nomatch = "  No match ",
+		upgrade = "  %s ",
+		error = "  Error fetching crate ",
 	},
 	highlight = {
 		loading = "CratesNvimLoading",
@@ -132,7 +132,7 @@ crates.setup({
 		},
 	},
 	null_ls = {
-		enabled = true,
-		name = "crates.nvim",
+		enabled = false,
+		name = "Crates",
 	},
 })
