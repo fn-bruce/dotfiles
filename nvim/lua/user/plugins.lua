@@ -63,6 +63,7 @@ return packer.startup(function(use)
 	use({ "mattn/webapi-vim", commit = "e9fdce27dc542f491c034a288bce5d74a79fb92d" })
 	use({ "Saecki/crates.nvim", commit = "78a69d206b68be719eb174ea3cb8b4d18c10123d" })
 	use({ "tzachar/cmp-tabnine", run = "./install.sh" })
+  use ({ "folke/which-key.nvim", commit = "bd4411a2ed4dd8bb69c125e339d837028a6eea71" })
 
 	-- Colorschemes
 	use({ "folke/tokyonight.nvim", commit = "8223c970677e4d88c9b6b6d81bda23daf11062bb" })
@@ -93,6 +94,7 @@ return packer.startup(function(use)
 		commit = "d96eaa914aab6cfc4adccb34af421bdd496468b0",
 		run = "./install.py --tern-completer",
 	})
+  use {'nvim-telescope/telescope-ui-select.nvim', commit = "62ea5e58c7bbe191297b983a9e7e89420f581369" }
 
 	-- Treesitter
 	use({
@@ -104,7 +106,7 @@ return packer.startup(function(use)
 	use({ "lewis6991/gitsigns.nvim", commit = "c18e016864c92ecf9775abea1baaa161c28082c3" })
 
 	-- DAP
-	use({ "mfussenegger/nvim-dap", commit = "014ebd53612cfd42ac8c131e6cec7c194572f21d" })
+	use({ "mfussenegger/nvim-dap", commit = "3b5e4b77e81451db4c83fb3ee4aeb89711a8b539" })
 	use({ "rcarriga/nvim-dap-ui", commit = "d76d6594374fb54abf2d94d6a320f3fd6e9bb2f7" })
 	use({ "ravenxrz/DAPInstall.nvim", commit = "8798b4c36d33723e7bba6ed6e2c202f84bb300de" })
 

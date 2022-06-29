@@ -22,4 +22,14 @@ telescope.setup({
 			},
 		},
 	},
+	extensions = {
+		["ui-select"] = {
+      sorting_strategy = "ascending",
+      layout_strategy = "bottom_pane",
+      layout_config = {
+        height = 8,
+      }
+		},
+	},
 })
+telescope.load_extension("ui-select")

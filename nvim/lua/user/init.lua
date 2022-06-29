@@ -27,5 +27,6 @@ if not vim.g.vscode then
   require("user.markdown-preview")
   require("user.crates-nvim")
   require("user.cmp-tabnine")
+  require("user.which-key")
 end
 
