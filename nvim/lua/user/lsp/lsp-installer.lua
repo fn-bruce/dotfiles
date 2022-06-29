@@ -50,12 +50,7 @@ for _, server in pairs(servers) do
 	end
 
 	if server == "rust_analyzer" then
-    require("rust-tools").setup {
-      server = {
-        on_attach = require("user.lsp.handlers").on_attach,
-        capabilities = require("user.lsp.handlers").capabilities,
-      },
-    }
+    require("user.rust-tools").setup()
 
     goto continue
 	end
