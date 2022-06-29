@@ -64,6 +64,7 @@ return packer.startup(function(use)
 	use({ "Saecki/crates.nvim", commit = "78a69d206b68be719eb174ea3cb8b4d18c10123d" })
 	use({ "tzachar/cmp-tabnine", run = "./install.sh" })
   use ({ "folke/which-key.nvim", commit = "bd4411a2ed4dd8bb69c125e339d837028a6eea71" })
+  use ({ "simrat39/rust-tools.nvim", commit = "11dcd674781ba68a951ab4c7b740553cae8fe671" })
 
 	-- Colorschemes
 	use({ "folke/tokyonight.nvim", commit = "8223c970677e4d88c9b6b6d81bda23daf11062bb" })
@@ -83,7 +84,7 @@ return packer.startup(function(use)
 
 	-- LSP
 	use({ "neovim/nvim-lspconfig", commit = "148c99bd09b44cf3605151a06869f6b4d4c24455" }) -- enable LSP
-	use({ "williamboman/nvim-lsp-installer", commit = "e9f13d7acaa60aff91c58b923002228668c8c9e6" }) -- simple to use language server installer
+	use({ "williamboman/nvim-lsp-installer", commit = "9887370c786acdeec958c0ab4ab13d97afe5525e" }) -- simple to use language server installer
 	use({ "jose-elias-alvarez/null-ls.nvim", commit = "ff40739e5be6581899b43385997e39eecdbf9465" }) -- for formatters and linters
 	use({ "RRethy/vim-illuminate", commit = "c82e6d04f27a41d7fdcad9be0bce5bb59fcb78e5" })
 	use({ "Hoffs/omnisharp-extended-lsp.nvim", commit = "e0dbe96194465f26e2cfff5d170ba8c88287e329" })
