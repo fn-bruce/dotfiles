@@ -7,6 +7,15 @@ wk.setup()
 
 -- normal mode
 wk.register({
+	d = { vim.lsp.buf.definition, "Goto Definition" },
+	D = { vim.lsp.buf.declaration, "Goto Declaration" },
+	r = { vim.lsp.buf.references, "Goto References" },
+	I = { vim.lsp.buf.implementation, "Goto Implementation" },
+	s = { vim.diagnostic.signature_help, "Show line diagnostic" },
+	l = { vim.diagnostic.open_float, "Show signature help" },
+}, { mode = "n", prefix = "g", noremap = true, silent = true })
+
+wk.register({
 	e = { "<cmd>NvimTreeToggle<cr>", "Open File Explorer" },
 	h = { "<cmd>nohlsearch<cr>", "Clear Highlights" },
 	c = {
@@ -55,11 +64,11 @@ wk.register({
 		r = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
 		s = { "<cmd>lua vim.lsp.buf.signature_help()<CR>", "Signature Help" },
 		q = { "<cmd>lua vim.diagnostic.setloclist()<CR>", "Set Local List" },
-    D = { "<cmd>lua vim.lsp.buf.declaration()<CR>", "Declaration" },
-    d = { "<cmd>lua vim.lsp.buf.definition()<CR>", "Definition" },
-    j = { vim.diagnostic.goto_next, "Next Diagnostic" },
-    k = { vim.diagnostic.goto_prev, "Previous Diagnostic" },
-    l = { "<cmd>lua vim.diagnostic.open_float()<CR>", "View Diagnostic" },
+		D = { "<cmd>lua vim.lsp.buf.declaration()<CR>", "Declaration" },
+		d = { "<cmd>lua vim.lsp.buf.definition()<CR>", "Definition" },
+		j = { vim.diagnostic.goto_next, "Next Diagnostic" },
+		k = { vim.diagnostic.goto_prev, "Previous Diagnostic" },
+		l = { "<cmd>lua vim.diagnostic.open_float()<CR>", "View Diagnostic" },
 	},
 	m = {
 		name = "Markdown",
@@ -67,10 +76,38 @@ wk.register({
 		p = { "<cmd>MarkdownPreview<CR>", "Preview" },
 	},
 	r = {
-		name = "Rest",
-		r = { "<Plug>RestNvim", "Run" },
-		p = { "<Plug>RestNvimPreview", "Preview" },
-		l = { "<Plug>RestNvimLast", "Last" },
+		name = "Rust",
+    h = {
+      name = "Hints/Hover",
+      s = { "<cmd>RustSetInlayHints<Cr>", "Set Inlay Hints" },
+      d = { "<cmd>RustDisableInlayHints<Cr>", "Disable Inlay Hints" },
+      t = { "<cmd>RustToggleInlayHints<Cr>", "Toggle Inlay Hints" },
+    },
+		r = { "<cmd>RustRunnables<Cr>", "Runnables" },
+		d = { "<cmd>RustDebuggables<Cr>", "Debuggables" },
+		v = { "<cmd>RustViewCrateGraph<Cr>", "View Crate Graph" },
+		w = { "<cmd>RustReloadWorkspace<Cr>", "Reload Workspae" },
+    c = { "<cmd>RustOpenCargo<Cr>", "Cargo" },
+    m = {
+      name = "Move",
+      u = { "<cmd>RustMoveItemUp<Cr>", "Item Up" },
+      d = { "<cmd>RustMoveItemDown<Cr>", "Item Down" },
+    },
+    e = { "<cmd>RustExpandMacro<Cr>", "Expand Macro" },
+    l = { "<cmd>RustJoinLines<Cr>", "Join Lines" },
+    p = { "<cmd>RustParentModule<Cr>", "Parent Module" },
+		-- sb = { "<cmd>RustStartStandaloneServerForBuffer<Cr>", "Start Standalone Server For Buffer" },
+		-- ss = { "<cmd>RustSSR<Cr>", "Server Side Rendering" },
+		-- xd = { "<cmd>RustOpenExternalDocs<Cr>", "Open External Docs" },
+	},
+	w = {
+		name = "Web",
+		r = {
+			name = "Rest",
+			r = { "<Plug>RestNvim", "Run" },
+			p = { "<Plug>RestNvimPreview", "Preview" },
+			l = { "<Plug>RestNvimLast", "Last" },
+		},
 	},
 	["/"] = { "<cmd>lua require('Comment.api').toggle_current_linewise()<cr>", "Comment" },
 }, { mode = "n", prefix = "<leader>", noremap = true, silent = true })

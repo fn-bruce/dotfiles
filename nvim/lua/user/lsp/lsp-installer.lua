@@ -16,7 +16,7 @@ local servers = {
 	"dockerls",
 	"omnisharp",
 	"clangd",
-  "taplo",
+	"taplo",
 }
 
 lsp_installer.setup()
@@ -49,5 +49,17 @@ for _, server in pairs(servers) do
 		opts = vim.tbl_deep_extend("force", omnisharp_opts, opts)
 	end
 
+	if server == "rust_analyzer" then
+    require("rust-tools").setup {
+      server = {
+        on_attach = require("user.lsp.handlers").on_attach,
+        capabilities = require("user.lsp.handlers").capabilities,
+      },
+    }
+
+    goto continue
+	end
+
 	lspconfig[server].setup(opts)
+  ::continue::
 end

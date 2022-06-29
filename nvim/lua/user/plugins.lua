@@ -57,14 +57,15 @@ return packer.startup(function(use)
 	use({ "goolord/alpha-nvim", commit = "ef27a59e5b4d7b1c2fe1950da3fe5b1c5f3b4c94" })
 	use({ "JoosepAlviste/nvim-ts-context-commentstring", commit = "88343753dbe81c227a1c1fd2c8d764afb8d36269" })
 	use({ "NTBBloodbath/rest.nvim", commit = "e5f68db73276c4d4d255f75a77bbe6eff7a476ef" })
+	use({ "mattn/webapi-vim", commit = "e9fdce27dc542f491c034a288bce5d74a79fb92d" })
+	use({ "folke/which-key.nvim", commit = "bd4411a2ed4dd8bb69c125e339d837028a6eea71" })
+
+	-- Rust
+	use({ "Saecki/crates.nvim", commit = "78a69d206b68be719eb174ea3cb8b4d18c10123d" })
+
+	-- Markdown
 	use({ "ellisonleao/glow.nvim", commit = "900042f7dda528cb980b7f1056ed7c21d4402826" })
 	use({ "iamcco/markdown-preview.nvim", run = "cd app && npm install" })
-	use({ "rust-lang/rust.vim", commit = "4aa69b84c8a58fcec6b6dad6fe244b916b1cf830" })
-	use({ "mattn/webapi-vim", commit = "e9fdce27dc542f491c034a288bce5d74a79fb92d" })
-	use({ "Saecki/crates.nvim", commit = "78a69d206b68be719eb174ea3cb8b4d18c10123d" })
-	use({ "tzachar/cmp-tabnine", run = "./install.sh" })
-  use ({ "folke/which-key.nvim", commit = "bd4411a2ed4dd8bb69c125e339d837028a6eea71" })
-  use ({ "simrat39/rust-tools.nvim", commit = "11dcd674781ba68a951ab4c7b740553cae8fe671" })
 
 	-- Colorschemes
 	use({ "folke/tokyonight.nvim", commit = "8223c970677e4d88c9b6b6d81bda23daf11062bb" })
@@ -77,6 +78,7 @@ return packer.startup(function(use)
 	use({ "saadparwaiz1/cmp_luasnip", commit = "a9de941bcbda508d0a45d28ae366bb3f08db2e36" }) -- snippet completions
 	use({ "hrsh7th/cmp-nvim-lsp", commit = "affe808a5c56b71630f17aa7c38e15c59fd648a8" })
 	use({ "hrsh7th/cmp-nvim-lua", commit = "d276254e7198ab7d00f117e88e223b4bd8c02d21" })
+	use({ "tzachar/cmp-tabnine", run = "./install.sh" })
 
 	-- snippets
 	use({ "L3MON4D3/LuaSnip", commit = "79b2019c68a2ff5ae4d732d50746c901dd45603a" }) --snippet engine
@@ -88,6 +90,7 @@ return packer.startup(function(use)
 	use({ "jose-elias-alvarez/null-ls.nvim", commit = "ff40739e5be6581899b43385997e39eecdbf9465" }) -- for formatters and linters
 	use({ "RRethy/vim-illuminate", commit = "c82e6d04f27a41d7fdcad9be0bce5bb59fcb78e5" })
 	use({ "Hoffs/omnisharp-extended-lsp.nvim", commit = "e0dbe96194465f26e2cfff5d170ba8c88287e329" })
+	use({ "simrat39/rust-tools.nvim", commit = "11dcd674781ba68a951ab4c7b740553cae8fe671" })
 
 	-- Telescope
 	use({
@@ -95,7 +98,7 @@ return packer.startup(function(use)
 		commit = "d96eaa914aab6cfc4adccb34af421bdd496468b0",
 		run = "./install.py --tern-completer",
 	})
-  use {'nvim-telescope/telescope-ui-select.nvim', commit = "62ea5e58c7bbe191297b983a9e7e89420f581369" }
+	use({ "nvim-telescope/telescope-ui-select.nvim", commit = "62ea5e58c7bbe191297b983a9e7e89420f581369" })
 
 	-- Treesitter
 	use({

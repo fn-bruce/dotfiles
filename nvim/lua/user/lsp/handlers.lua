@@ -57,23 +57,9 @@ function show_documentation()
 end
 
 local function lsp_keymaps(bufnr)
-  local status_ok, wk = pcall(require, "which-key")
-  if not status_ok then
-    return
-  end
-
-  wk.register({
-    K = { vim.lsp.buf.hover, "Show hover" },
-  }, { mode = "n", noremap = true, silent = true, buffer = bufnr })
-
-  wk.register({
-    d = { vim.lsp.buf.definition, "Goto Definition" },
-    D = { vim.lsp.buf.declaration, "Goto Declaration" },
-    r = { vim.lsp.buf.references, "Goto References" },
-    I = { vim.lsp.buf.implementation, "Goto Implementation" },
-    s = { vim.diagnostic.open_float, "Show signature help" },
-    l = { vim.diagnostic.signature_help, "Show line diagnostic" },
-  }, { mode = "n", prefix = "g", noremap = true, silent = true, buffer = bufnr })
+	local opts = { noremap = true, silent = true }
+	local keymap = vim.api.nvim_buf_set_keymap
+	keymap(bufnr, "n", "K", "<cmd>lua show_documentation()<CR>", opts)
 end
 
 M.on_attach = function(client, bufnr)
