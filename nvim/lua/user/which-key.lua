@@ -3,7 +3,14 @@ if not status_ok then
 	return
 end
 
-wk.setup()
+wk.setup({
+  window = {
+		border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+  },
+  layout = {
+    align = "center",
+  },
+})
 
 -- normal mode
 wk.register({

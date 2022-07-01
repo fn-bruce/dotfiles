@@ -50,7 +50,7 @@ for _, server in pairs(servers) do
 	end
 
 	if server == "rust_analyzer" then
-    require("user.rust-tools").setup()
+    require("user.rusttools").setup()
 
     goto continue
 	end
