@@ -137,11 +137,11 @@ cmp.setup({
 	window = {
 		documentation = {
 			border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
-			winhighlight = "NormalFloat:Pmenu,NormalFloat:Pmenu,CursorLine:PmenuSel,Search:None",
+			winhighlight = "CursorLine:PmenuSel,Search:None",
 		},
 		completion = {
 			border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
-			winhighlight = "NormalFloat:Pmenu,NormalFloat:Pmenu,CursorLine:PmenuSel,Search:None",
+			winhighlight = "CursorLine:PmenuSel,Search:None",
 		},
 	},
 	experimental = {

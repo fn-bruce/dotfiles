@@ -19,7 +19,11 @@ local servers = {
 	"taplo",
 }
 
-lsp_installer.setup()
+lsp_installer.setup({
+  ui = {
+    border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+  },
+})
 
 local lspconfig_status_ok, lspconfig = pcall(require, "lspconfig")
 if not lspconfig_status_ok then

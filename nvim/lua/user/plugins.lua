@@ -59,6 +59,7 @@ return packer.startup(function(use)
 	use({ "NTBBloodbath/rest.nvim", commit = "e5f68db73276c4d4d255f75a77bbe6eff7a476ef" })
 	use({ "mattn/webapi-vim", commit = "e9fdce27dc542f491c034a288bce5d74a79fb92d" })
 	use({ "folke/which-key.nvim", commit = "bd4411a2ed4dd8bb69c125e339d837028a6eea71" })
+	use({ "norcalli/nvim-colorizer.lua", commit = "36c610a9717cc9ec426a07c8e6bf3b3abcb139d6" })
 
 	-- Rust
 	use({ "Saecki/crates.nvim", commit = "78a69d206b68be719eb174ea3cb8b4d18c10123d" })
@@ -71,6 +72,7 @@ return packer.startup(function(use)
 	use({ "folke/tokyonight.nvim", commit = "8223c970677e4d88c9b6b6d81bda23daf11062bb" })
 	use({ "lunarvim/darkplus.nvim", commit = "2584cdeefc078351a79073322eb7f14d7fbb1835" })
 	use({ "Shatur/neovim-ayu", commit = "596caf119426b2d88ced6b41904611e025d54045" })
+	use({ "ellisonleao/gruvbox.nvim", commit = "79419f9313192d238c58feccac887dacb4db9276" })
 
 	-- cmp plugins
 	use({ "hrsh7th/nvim-cmp", commit = "df6734aa018d6feb4d76ba6bda94b1aeac2b378a" }) -- The completion plugin

@@ -23,7 +23,7 @@ def _draw_icon(screen: Screen, index: int, symbol: str = " BRUCE ") -> int:
 
     fg, bg = screen.cursor.fg, screen.cursor.bg
     screen.cursor.fg = as_rgb(color_as_int(Color(83, 162, 210)))
-    screen.cursor.bg = as_rgb(color_as_int(Color(19, 21, 27)))
+    screen.cursor.bg = as_rgb(color_as_int(Color(10, 12, 17)))
     screen.draw(symbol)
     screen.cursor.fg, screen.cursor.bg = fg, bg
     screen.cursor.x = len(symbol)
@@ -74,14 +74,14 @@ def _draw_right_status(screen: Screen, is_last: bool) -> int:
         screen.draw(" " * draw_spaces)
 
     cells = [
-        (Color(19, 21, 27), date),
+        (Color(10, 12, 17), date),
     ]
 
     screen.cursor.fg = as_rgb(color_as_int(Color(83, 162, 210)))
     for color, status in cells:
         screen.cursor.bg = as_rgb(color_as_int(color))
         screen.draw(status)
-    screen.cursor.bg = as_rgb(color_as_int(Color(19, 21, 27)))
+    screen.cursor.bg = as_rgb(color_as_int(Color(10, 12, 17)))
 
     if screen.columns - screen.cursor.x > right_status_length:
         screen.cursor.x = screen.columns - right_status_length
