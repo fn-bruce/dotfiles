@@ -14,12 +14,14 @@ wk.setup({
 
 -- normal mode
 wk.register({
-	d = { vim.lsp.buf.definition, "Goto Definition" },
+	d = { "<cmd>lua vim.lsp.buf.definition()<cr>", "Goto Definition" },
 	D = { vim.lsp.buf.declaration, "Goto Declaration" },
 	r = { vim.lsp.buf.references, "Goto References" },
 	I = { vim.lsp.buf.implementation, "Goto Implementation" },
-	s = { vim.diagnostic.signature_help, "Show line diagnostic" },
-	l = { vim.diagnostic.open_float, "Show signature help" },
+  j = { vim.diagnostic.goto_next, "Next Diagnostic" },
+  k = { vim.diagnostic.goto_prev, "Previous Diagnostic" },
+	s = { vim.diagnostic.signature_help, "Show signature help" },
+	l = { vim.diagnostic.open_float, "Show line diagnostic" },
 }, { mode = "n", prefix = "g", noremap = true, silent = true })
 
 wk.register({

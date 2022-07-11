@@ -44,13 +44,13 @@ local kind_icons = {
 }
 
 local source_mapping = {
-  nvim_lsp = "[LSP]",
-  nvim_lua = "[Lua]",
-  luasnip = "[Snip]",
-  buffer = "[Buffer]",
-  path = "[Path]",
-  emoji = "[Emoji]",
-  cmp_tabnine = "[TN]",
+	nvim_lsp = "[LSP]",
+	nvim_lua = "[Lua]",
+	luasnip = "[Snip]",
+	buffer = "[Buffer]",
+	path = "[Path]",
+	emoji = "[Emoji]",
+	cmp_tabnine = "[TN]",
 }
 
 cmp.setup({
@@ -66,7 +66,7 @@ cmp.setup({
 		["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-1), { "i", "c" }),
 		["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(1), { "i", "c" }),
 		["<C-Space>"] = cmp.mapping(cmp.mapping.complete(), { "i", "c" }),
-		["<C-e>"] = cmp.mapping({
+		["<ESC>"] = cmp.mapping({
 			i = cmp.mapping.abort(),
 			c = cmp.mapping.close(),
 		}),
@@ -109,7 +109,7 @@ cmp.setup({
 
 			local menu = source_mapping[entry.source.name]
 
-      -- cmp_tabnine setup
+			-- cmp_tabnine setup
 			if entry.source.name == "cmp_tabnine" then
 				if entry.completion_item.data ~= nil and entry.completion_item.data.detail ~= nil then
 					menu = entry.completion_item.data.detail .. " " .. menu

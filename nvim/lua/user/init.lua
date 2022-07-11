@@ -15,11 +15,11 @@ if not vim.g.vscode then
   require("user.nvim-tree")
   require("user.bufferline")
   require("user.lualine")
-  require("user.toggleterm")
   require("user.project")
   require("user.impatient")
   require("user.illuminate")
   require("user.alpha")
+  require("user.toggleterm")
   require("user.lsp")
   require("user.dap")
   require("user.rest")
@@ -31,4 +31,3 @@ if not vim.g.vscode then
   require("user.ayu")
   require("user.colorizer")
 end
-

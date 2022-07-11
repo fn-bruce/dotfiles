@@ -9,7 +9,12 @@ function M.setup()
 			on_attach = lsp_handlers.on_attach,
 			capabilities = lsp_handlers.capabilities,
 		},
+    window = {
+      border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+      floating = true,
+    },
 	})
+
 end
 
 return M

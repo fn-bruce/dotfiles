@@ -21,6 +21,12 @@ nvim_tree.setup({
 		"alpha",
 	},
 	update_cwd = true,
+	sort_by = "extension",
+	actions = {
+		open_file = {
+			resize_window = false,
+		},
+	},
 	renderer = {
 		add_trailing = false,
 		group_empty = false,
@@ -74,7 +80,7 @@ nvim_tree.setup({
 	},
 	update_focused_file = {
 		enable = true,
-		update_cwd = true,
+		update_root = true,
 		ignore_list = {},
 	},
 	git = {
