@@ -101,8 +101,6 @@ source $ZSH/oh-my-zsh.sh
 export EDITOR="/opt/homebrew/bin/nvim"
 export RANGER_DEVICONS_SEPARATOR=" "
 export DOTNET_ROOT="/usr/local/share/dotnet"
-# export ConnectionStrings__CityInfoDBConnectionString="Server=myproductionserver;Database=CityInfoDb;UserId=ARealUsername;Password=ARealPassword;"
-export ConnectionStrings__CityInfoDBConnectionString="Data Source=CityInfo.db"
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
