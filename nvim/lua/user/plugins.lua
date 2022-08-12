@@ -60,6 +60,11 @@ return packer.startup(function(use)
 	use({ "mattn/webapi-vim" })
 	use({ "folke/which-key.nvim" })
 	use({ "norcalli/nvim-colorizer.lua" })
+	use({ "kylechui/nvim-surround" })
+	use({ "github/copilot.vim" })
+  use({ "windwp/nvim-ts-autotag" })
+  use({ "glts/vim-radical" })
+  use({ "glts/vim-magnum" })
 
 	-- Rust
 	use({ "Saecki/crates.nvim" })
@@ -81,7 +86,6 @@ return packer.startup(function(use)
 	use({ "saadparwaiz1/cmp_luasnip" }) -- snippet completions
 	use({ "hrsh7th/cmp-nvim-lsp" })
 	use({ "hrsh7th/cmp-nvim-lua" })
-	use({ "tzachar/cmp-tabnine" })
 
 	-- snippets
 	use({ "L3MON4D3/LuaSnip" }) --snippet engine

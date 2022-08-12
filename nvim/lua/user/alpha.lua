@@ -13,13 +13,13 @@ dashboard.section.header.val = {
 	[[ \/_/\/_/\/____/\/___/  \/__/    \/_/\/_/\/_/\/_/]],
 }
 dashboard.section.buttons.val = {
-	dashboard.button("f", " " .. " Find file", ":Telescope find_files <CR>"),
-	dashboard.button("e", " " .. " New file", ":ene <BAR> startinsert <CR>"),
-	dashboard.button("p", " " .. " Find project", ":lua require('telescope').extensions.projects.projects()<CR>"),
-	dashboard.button("r", " " .. " Recent files", ":Telescope oldfiles <CR>"),
-	dashboard.button("t", " " .. " Find text", ":Telescope live_grep <CR>"),
-	dashboard.button("c", " " .. " Config", ":cd ~/.config/nvim | e ./init.lua <CR>"),
-	dashboard.button("q", " " .. " Quit", ":qa<CR>"),
+	dashboard.button("SPC n", " " .. " New file" ),
+	dashboard.button("SPC f f", " " .. " Find File" ),
+	dashboard.button("SPC f p", " " .. " Find Project" ),
+	dashboard.button("SPC f r", " " .. " Recent Files" ),
+	dashboard.button("SPC f t", " " .. " Find Text" ),
+	dashboard.button("SPC N c", " " .. " Config" ),
+	dashboard.button("SPC q", " " .. " Quit" ),
 }
 local function footer()
 	-- NOTE: requires the fortune-mod package to work

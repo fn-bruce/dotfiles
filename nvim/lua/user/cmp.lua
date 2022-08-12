@@ -50,7 +50,6 @@ local source_mapping = {
 	buffer = "[Buffer]",
 	path = "[Path]",
 	emoji = "[Emoji]",
-	cmp_tabnine = "[TN]",
 }
 
 cmp.setup({
@@ -72,8 +71,8 @@ cmp.setup({
 		}),
 		-- Accept currently selected item. If none selected, `select` first item.
 		-- Set `select` to `false` to only confirm explicitly selected items.
-		["<CR>"] = cmp.mapping.confirm({ select = true }),
-		["<Tab>"] = cmp.mapping(function(fallback)
+		["<CR>"] = cmp.mapping.confirm({ select = false }),
+		["<C-n>"] = cmp.mapping(function(fallback)
 			if cmp.visible() then
 				cmp.select_next_item()
 			elseif luasnip.expandable() then
@@ -89,7 +88,7 @@ cmp.setup({
 			"i",
 			"s",
 		}),
-		["<S-Tab>"] = cmp.mapping(function(fallback)
+		["<C-p>"] = cmp.mapping(function(fallback)
 			if cmp.visible() then
 				cmp.select_prev_item()
 			elseif luasnip.jumpable(-1) then
@@ -109,14 +108,6 @@ cmp.setup({
 
 			local menu = source_mapping[entry.source.name]
 
-			-- cmp_tabnine setup
-			if entry.source.name == "cmp_tabnine" then
-				if entry.completion_item.data ~= nil and entry.completion_item.data.detail ~= nil then
-					menu = entry.completion_item.data.detail .. " " .. menu
-				end
-				vim_item.kind = ""
-			end
-
 			vim_item.menu = menu
 			return vim_item
 		end,
@@ -128,7 +119,6 @@ cmp.setup({
 		{ name = "buffer" },
 		{ name = "path" },
 		{ name = "crates" },
-		{ name = "cmp_tabnine" },
 	},
 	confirm_opts = {
 		behavior = cmp.ConfirmBehavior.Replace,

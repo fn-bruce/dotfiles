@@ -101,6 +101,7 @@ source $ZSH/oh-my-zsh.sh
 export EDITOR="/opt/homebrew/bin/nvim"
 export RANGER_DEVICONS_SEPARATOR=" "
 export DOTNET_ROOT="/usr/local/share/dotnet"
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
@@ -118,3 +119,8 @@ export PATH="$PATH:/Users/brucenguyen/.dotnet/tools"
 
 alias luamake="$HOME/projects/github/lua-language-server/3rd/luamake/luamake"
 alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
+
+
+# Runs nvm
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

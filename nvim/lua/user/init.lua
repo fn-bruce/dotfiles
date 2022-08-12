@@ -26,8 +26,9 @@ if not vim.g.vscode then
   require("user.glow")
   require("user.markdown-preview")
   require("user.crates-nvim")
-  require("user.cmp-tabnine")
   require("user.which-key")
   require("user.ayu")
   require("user.colorizer")
+  require("user.nvim-surround")
+  require("user.nvim-ts-autotag")
 end
