@@ -14,7 +14,7 @@ M.setup = function()
 	end
 
 	local config = {
-		virtual_text = false, -- disable virtual text
+		virtual_text = true, -- disable virtual text
 		signs = {
 			active = signs, -- show signs
 		},
@@ -80,7 +80,11 @@ M.on_attach = function(client, bufnr)
 	M.capabilities.textDocument.completion.completionItem.snippetSupport = true
 	M.capabilities = cmp_nvim_lsp.update_capabilities(M.capabilities)
 
-	lsp_keymaps(bufnr)
+  if client.name == "rust_analyzer" then
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "K", "<cmd>lua require('rust-tools').hover_actions.hover_actions()<cr>", { noremap = true, silent = true })
+  else
+    lsp_keymaps(bufnr)
+  end
 
 	local status_ok, illuminate = pcall(require, "illuminate")
 	if not status_ok then
