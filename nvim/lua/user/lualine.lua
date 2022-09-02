@@ -7,6 +7,36 @@ local hide_in_width = function()
 	return vim.fn.winwidth(0) > 80
 end
 
+local lsp = {
+	function(msg)
+		msg = msg or "LS Inactive"
+		local buf_clients = vim.lsp.buf_get_clients()
+		if next(buf_clients) == nil then
+
+			-- TODO: clean up this if statement
+			if type(msg) == "boolean" or #msg == 0 then
+				return "LS Inactive"
+			end
+			return msg
+		end
+		local buf_client_names = {}
+
+		-- add client
+		for _, client in pairs(buf_clients) do
+			if client.name ~= "null-ls" then
+				table.insert(buf_client_names, client.name)
+			end
+		end
+
+		local unique_client_names = vim.fn.uniq(buf_client_names)
+		return "[" .. table.concat(unique_client_names, ", ") .. "]"
+	end,
+	color = { gui = "bold" },
+	cond = function()
+    return vim.fn.winwidth(0) > 70
+  end,
+}
+
 local diagnostics = {
 	"diagnostics",
 	sources = { "nvim_diagnostic" },
@@ -58,7 +88,7 @@ lualine.setup({
 		lualine_a = { "mode" },
 		lualine_b = { branch },
 		lualine_c = { diagnostics },
-		lualine_x = { diff, spaces,  "encoding", filetype },
+		lualine_x = { diff, lsp, spaces, "encoding", filetype },
 		lualine_y = { location },
 		lualine_z = { "progress" },
 	},
