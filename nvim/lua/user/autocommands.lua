@@ -45,3 +45,11 @@ vim.api.nvim_create_autocmd({ "TextYankPost" }, {
 		vim.highlight.on_yank({ higroup = "Visual", timeout = 200 })
 	end,
 })
+
+-- convert json filetype to jsonc
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	pattern = { "json" },
+	callback = function()
+		vim.cmd("set filetype=jsonc")
+	end,
+})

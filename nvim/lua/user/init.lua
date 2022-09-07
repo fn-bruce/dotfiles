@@ -5,6 +5,7 @@ require("user.plugins")
 require("user.autocommands")
 
 if not vim.g.vscode then
+  require("user.tokyonight")
   require("user.colorscheme")
   require("user.cmp")
   require("user.telescope")
@@ -21,7 +22,6 @@ if not vim.g.vscode then
   require("user.alpha")
   require("user.toggleterm")
   require("user.lsp")
-  require("user.dap")
   require("user.rest")
   require("user.glow")
   require("user.markdown-preview")
@@ -31,4 +31,6 @@ if not vim.g.vscode then
   require("user.colorizer")
   require("user.nvim-surround")
   require("user.nvim-ts-autotag")
+  require("user.mason")
+  require("user.dap")
 end

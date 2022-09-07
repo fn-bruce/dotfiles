@@ -59,6 +59,12 @@ for _, server in pairs(servers) do
     goto continue
 	end
 
+  if server == "cssls" then
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    capabilities.textDocument.completion.completionItem.snippetSupport = true
+    opts.capabilities = capabilities
+  end
+
 	lspconfig[server].setup(opts)
   ::continue::
 end
