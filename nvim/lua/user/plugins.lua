@@ -67,6 +67,7 @@ return packer.startup(function(use)
 	use({ "glts/vim-magnum" })
 	use({ "rcarriga/nvim-notify" })
 	use({ "williamboman/mason.nvim" })
+	use({ "folke/trouble.nvim" })
 
 	-- Rust
 	use({ "Saecki/crates.nvim" })

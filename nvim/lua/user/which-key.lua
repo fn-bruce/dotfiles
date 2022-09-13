@@ -117,6 +117,15 @@ wk.register({
       l = { "<Plug>RestNvimLast", "Last" },
     },
   },
+  x = {
+    name = "Trouble",
+    x = { "<cmd>TroubleToggle<cr>", "Toggle" },
+    w = { "<cmd>Trouble lsp_workspace_diagnostics<cr>", "Workspace Diagnostics" },
+    d = { "<cmd>Trouble lsp_document_diagnostics<cr>", "Document Diagnostics" },
+    l = { "<cmd>Trouble loclist<cr>", "Location List" },
+    q = { "<cmd>Trouble quickfix<cr>", "Quickfix" },
+    r = { "<cmd>Trouble lsp_references<cr>", "References" },
+  },
   q = { ":qa<CR>", "Quit" },
   N = {
     name = "Neovim",

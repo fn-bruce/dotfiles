@@ -15,7 +15,7 @@ vim.opt.expandtab = true -- convert tabs to spaces
 vim.opt.autoindent = true -- Good auto indent
 vim.opt.laststatus = 3
 vim.opt.number = true -- set numbered lines
-vim.opt.relativenumber = false -- Display relative numbers to current cursor location
+vim.opt.relativenumber = true -- Display relative numbers to current cursor location
 vim.opt.showmode = false -- we don't need to see things like -- INSERT -- anymore
 vim.opt.backup = false -- creates a backup file
 vim.opt.writebackup = false -- if a file is being edited by another program (or was written to file while editing with another program), it is not allowed to be edited
@@ -43,6 +43,9 @@ vim.opt.showcmd = false
 vim.opt.ruler = false
 vim.opt.numberwidth = 4 -- set number column width to 2 {default 4}
 vim.opt.fillchars.eob = " "
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
+vim.opt.foldlevelstart = 99
 
 -- vim.opt.background = "dark"                     -- tell vim what the background color looks like
 -- vim.opt.whichwrap:append("<,>,[,],h,l")
