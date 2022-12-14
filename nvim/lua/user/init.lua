@@ -32,5 +32,4 @@ if not vim.g.vscode then
   require("user.nvim-surround")
   require("user.nvim-ts-autotag")
   require("user.mason")
-  require("user.dap")
 end

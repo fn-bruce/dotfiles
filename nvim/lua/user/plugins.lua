@@ -68,6 +68,7 @@ return packer.startup(function(use)
 	use({ "rcarriga/nvim-notify" })
 	use({ "williamboman/mason.nvim" })
 	use({ "folke/trouble.nvim" })
+	use({ "puremourning/vimspector" })
 
 	-- Rust
 	use({ "Saecki/crates.nvim" })

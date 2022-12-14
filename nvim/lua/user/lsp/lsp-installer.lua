@@ -5,7 +5,7 @@ end
 
 local servers = {
 	"sumneko_lua",
-	"cssls",
+	--[[ "cssls", ]]
 	"html",
 	"tsserver",
 	"pyright",
@@ -17,6 +17,7 @@ local servers = {
 	"omnisharp",
 	"clangd",
 	"taplo",
+  "tailwindcss",
 }
 
 lsp_installer.setup({

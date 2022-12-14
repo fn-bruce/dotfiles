@@ -69,16 +69,16 @@ M.on_attach = function(client, bufnr)
 	end
 
 	if client.name == "tsserver" then
-		client.resolved_capabilities.document_formatting = false
+		client.server_capabilities.document_formatting = false
 	end
 
 	if client.name == "sumneko_lua" then
-		client.resolved_capabilities.document_formatting = false
+		client.server_capabilities.document_formatting = false
 	end
 
 	M.capabilities = vim.lsp.protocol.make_client_capabilities()
 	M.capabilities.textDocument.completion.completionItem.snippetSupport = true
-	M.capabilities = cmp_nvim_lsp.update_capabilities(M.capabilities)
+	M.capabilities = cmp_nvim_lsp.default_capabilities(M.capabilities)
 
 	if client.name == "rust_analyzer" then
 		vim.api.nvim_buf_set_keymap(
