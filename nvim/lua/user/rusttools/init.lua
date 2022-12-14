@@ -4,9 +4,6 @@ function M.setup()
 	local rt = require("rust-tools")
 	local lsp_handlers = require("user.lsp.handlers")
 
-	-- Normal setup
-	require("rust-tools").setup(opts)
-
 	-- for debugging
 	local extension_path = vim.env.HOME .. "/.vscode/extensions/vadimcn.vscode-lldb-1.6.7/"
 	local codelldb_path = extension_path .. "adapter/codelldb"
