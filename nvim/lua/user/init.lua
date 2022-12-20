@@ -21,6 +21,8 @@ if not vim.g.vscode then
   require("user.illuminate")
   require("user.alpha")
   require("user.toggleterm")
+  require("user.mason")
+  require("user.mason-lspconfig")
   require("user.lsp")
   require("user.rest")
   require("user.glow")
@@ -31,5 +33,5 @@ if not vim.g.vscode then
   require("user.colorizer")
   require("user.nvim-surround")
   require("user.nvim-ts-autotag")
-  require("user.mason")
+  require("user.dap")
 end

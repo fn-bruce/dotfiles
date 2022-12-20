@@ -29,7 +29,7 @@ local lsp = {
 		end
 
 		local unique_client_names = vim.fn.uniq(buf_client_names)
-		return "[" .. table.concat(unique_client_names, ", ") .. "]"
+		return "(" .. table.concat(unique_client_names, ", ") .. ")"
 	end,
 	color = { gui = "bold" },
 	cond = function()
@@ -87,7 +87,7 @@ lualine.setup({
 	sections = {
 		lualine_a = { "mode" },
 		lualine_b = { branch },
-		lualine_c = { diagnostics },
+		lualine_c = { 'filename', diagnostics },
 		lualine_x = { diff, lsp, spaces, "encoding", filetype },
 		lualine_y = { location },
 		lualine_z = { "progress" },

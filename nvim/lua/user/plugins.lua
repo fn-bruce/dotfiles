@@ -66,7 +66,6 @@ return packer.startup(function(use)
 	use({ "glts/vim-radical" })
 	use({ "glts/vim-magnum" })
 	use({ "rcarriga/nvim-notify" })
-	use({ "williamboman/mason.nvim" })
 	use({ "folke/trouble.nvim" })
 	use({ "puremourning/vimspector" })
 
@@ -97,7 +96,8 @@ return packer.startup(function(use)
 
 	-- LSP
 	use({ "neovim/nvim-lspconfig" }) -- enable LSP
-	use({ "williamboman/nvim-lsp-installer" }) -- simple to use language server installer
+	use({ "williamboman/mason.nvim" })
+	use({ "williamboman/mason-lspconfig.nvim" })
 	use({ "jose-elias-alvarez/null-ls.nvim" }) -- for formatters and linters
 	use({ "RRethy/vim-illuminate" })
 	use({ "Hoffs/omnisharp-extended-lsp.nvim" })

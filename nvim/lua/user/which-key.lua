@@ -42,6 +42,18 @@ wk.register({
 		D = { "<cmd>lua require('crates').open_documentation()<cr>", "Open Documentation" },
 		C = { "<cmd>lua require('crates').open_crates_io()<cr>", "Open Crates IO" },
 	},
+  d = {
+    name = "Debug",
+    b = { "<cmd>lua require('dap').toggle_breakpoint()<cr>", "Toggle Breakpoint" },
+    c = { "<cmd>lua require('dap').continue()<cr>", "Continue" },
+    i = { "<cmd>lua require('dap').step_into()<cr>", "Step Into" },
+    o = { "<cmd>lua require('dap').step_over()<cr>", "Step Over" },
+    O = { "<cmd>lua require('dap').step_out()<cr>", "Step Out" },
+    r = { "<cmd>lua require('dap').repl.toggle()<cr>", "Toggle REPL" },
+    l = { "<cmd>lua require('dap').run_last()<cr>", "Run Last" },
+    u = { "<cmd>lua require('dapui').toggle()<cr>", "Toggle UI" },
+    t = { "<cmd>lua require('dap').terminate()<cr>", "Terminate" },
+  },
 	f = {
 		name = "Find",
 		f = { "<cmd>Telescope find_files<cr>", "File" },
