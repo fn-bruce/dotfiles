@@ -1,7 +1,7 @@
 local M = {}
 
 function M.setup()
-	local rt = require("rust-tools")
+	local rust_tools = require("rust-tools")
 	local lsp_handlers = require("user.lsp.handlers")
 
 	-- for debugging
@@ -9,7 +9,7 @@ function M.setup()
 	local codelldb_path = extension_path .. "adapter/codelldb"
 	local liblldb_path = extension_path .. "lldb/lib/liblldb.dylib"
 
-	rt.setup({
+	rust_tools.setup({
 		server = {
 			on_attach = lsp_handlers.on_attach,
 			capabilities = lsp_handlers.capabilities,
