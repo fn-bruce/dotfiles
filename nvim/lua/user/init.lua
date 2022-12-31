@@ -34,4 +34,6 @@ if not vim.g.vscode then
   require("user.nvim-surround")
   require("user.nvim-ts-autotag")
   require("user.dap")
+  require("user.copilot")
+  require("user.rusttools").setup()
 end

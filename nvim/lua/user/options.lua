@@ -46,6 +46,8 @@ vim.opt.fillchars.eob = " "
 vim.opt.foldmethod = "expr"
 vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
 vim.opt.foldlevelstart = 99
+vim.opt.showbreak = "↪ "
+vim.opt.wrap = true
 
 -- vim.opt.background = "dark"                     -- tell vim what the background color looks like
 -- vim.opt.whichwrap:append("<,>,[,],h,l")

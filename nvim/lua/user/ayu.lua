@@ -5,6 +5,5 @@ end
 
 local colors = require("ayu.colors")
 
-
 ayu.setup({
 })
