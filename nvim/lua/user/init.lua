@@ -21,8 +21,6 @@ if not vim.g.vscode then
   require("user.illuminate")
   require("user.alpha")
   require("user.toggleterm")
-  require("user.mason")
-  require("user.mason-lspconfig")
   require("user.lsp")
   require("user.rest")
   require("user.glow")
