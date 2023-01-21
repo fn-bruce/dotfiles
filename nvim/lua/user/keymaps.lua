@@ -1,56 +1,53 @@
-local opts = { noremap = true, silent = true }
+-- .---------.
+-- | KEYMAPS |
+-- '---------'
 
--- Shorten function name
-local keymap = vim.keymap.set
+-- remap space as leader key
+vim.keymap.set("", "<Space>", "<Nop>", { noremap = true, silent = true })
 
---Remap space as leader key
-keymap("", "<Space>", "<Nop>", opts)
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
-
--- Modes
---   normal_mode = "n",
---   insert_mode = "i",
---   visual_mode = "v",
---   visual_block_mode = "x",
---   term_mode = "t",
---   command_mode = "c",
-
--- Normal --
--- Better window navigation
-keymap("n", "<C-h>", "<C-w>h", opts)
-keymap("n", "<C-j>", "<C-w>j", opts)
-keymap("n", "<C-k>", "<C-w>k", opts)
-keymap("n", "<C-l>", "<C-w>l", opts)
-
--- Resize with arrows
-keymap("n", "<A-Up>", ":resize -2<CR>", opts)
-keymap("n", "<A-Down>", ":resize +2<CR>", opts)
-keymap("n", "<A-Left>", ":vertical resize -2<CR>", opts)
-keymap("n", "<A-Right>", ":vertical resize +2<CR>", opts)
-
--- Naviagate buffers
-keymap("n", "<S-l>", ":bnext<CR>", opts)
-keymap("n", "<S-h>", ":bprevious<CR>", opts)
+-- Remap for dealing with word wrap
+vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
 -- Close buffers
-keymap("n", "<S-q>", "<cmd>Bdelete!<CR>", opts)
+vim.keymap.set("n", "<S-q>", "<cmd>Bdelete!<CR>", { noremap = true, silent = true })
 
--- Scroll while having the cursor in the center of the screen
-keymap("n", "<C-d>", "<C-d>zz", opts)
-keymap("n", "<C-u>", "<C-u>zz", opts)
+-- Naviagate buffers
+vim.keymap.set("n", "<S-l>", ":bnext<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "<S-h>", ":bprevious<CR>", { noremap = true, silent = true })
 
--- Insert --
--- Press jk fast to enter
-keymap("i", "jk", "<ESC>", opts)
+-- Better window navigation
+vim.keymap.set("n", "<C-h>", "<C-w>h", { noremap = true, silent = true })
+vim.keymap.set("n", "<C-j>", "<C-w>j", { noremap = true, silent = true })
+vim.keymap.set("n", "<C-k>", "<C-w>k", { noremap = true, silent = true })
+vim.keymap.set("n", "<C-l>", "<C-w>l", { noremap = true, silent = true })
 
--- Visual --
--- Stay in indent mode
-keymap("v", "<", "<gv", opts)
-keymap("v", ">", ">gv", opts)
-
--- Plugins --
-
--- illuminate
-keymap("n", "<c-n>", '<cmd>lua require"illuminate".next_reference{wrap=true}<cr>', opts)
-keymap("n", "<c-p>", '<cmd>lua require"illuminate".next_reference{reverse=true,wrap=true}<cr>', opts)
+local which_key = require("which-key")
+which_key.register({
+  [";"] = { "<cmd>Alpha<cr>", "Dashboard" },
+  e = { "<cmd>NvimTreeToggle<cr>", "Explorer" },
+  f = {
+    name = "Find",
+    c = { function()
+      require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown {
+        windblend = 10,
+        previewer = false,
+      })
+    end, "Current Buffer" },
+    f = { require("telescope.builtin").find_files, "Files" },
+    g = { require("telescope.builtin").live_grep, "Grep" },
+    p = { require("telescope.builtin").projects, "Projects" },
+    b = { require("telescope.builtin").buffers, "Buffers" },
+    r = { require("telescope.builtin").oldfiles, "Recently Used Files" },
+    h = { require("telescope.builtin").help_tags, "Help Tags" },
+    w = { require("telescope.builtin").grep_string, "Current Word" },
+    d = { require("telescope.builtin").diagnostics, "Diagnostics" },
+  },
+  g = {
+    name = "Git",
+    g = { "<cmd>lua _LAZYGIT_TOGGLE()<cr>", "GUI" },
+  },
+  h = { "<cmd>nohlsearch<cr>", "Clear Highlights" },
+  n = { "<cmd>ene <BAR> startinsert <cr>", "New File" },
+  q = { ":qa<CR>", "Quit" },
+}, { mode = "n", prefix = "<leader>", noremap = true, silent = true })
