@@ -41,7 +41,7 @@ vim.opt.sidescrolloff = 8
 vim.opt.backup = false -- creates a backup file
 vim.opt.writebackup = false -- if a file is being edited by another program (or was written to file while editing with another program), it is not allowed to be edited
 vim.opt.swapfile = false -- creates a swapfile
-vim.opt.undodir = os.getenv("HOME") .. "/undodir"
+vim.opt.undodir = os.getenv("HOME") .. "/.undodir"
 vim.opt.undofile = true -- enable persistent undo
 
 -- search and replace options

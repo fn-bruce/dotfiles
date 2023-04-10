@@ -7,9 +7,9 @@ local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local capabilities = cmp_nvim_lsp.default_capabilities()
 local signs = {
   { name = "DiagnosticSignError", text = "" },
-  { name = "DiagnosticSignWarn", text = "" },
-  { name = "DiagnosticSignHint", text = "" },
-  { name = "DiagnosticSignInfo", text = "" },
+  { name = "DiagnosticSignWarn",  text = "" },
+  { name = "DiagnosticSignHint",  text = "" },
+  { name = "DiagnosticSignInfo",  text = "" },
 }
 local on_attach = function(client, bufnr)
   -- NOTE: Remember that lua is a real programming language, and as such it is possible
@@ -73,7 +73,7 @@ local servers = {
 local diag_config = {
   virtual_text = false, -- disable virtual text
   signs = {
-    active = signs, -- show signs
+    active = signs,     -- show signs
   },
   update_in_insert = true,
   underline = true,
@@ -100,8 +100,8 @@ for _, sign in ipairs(signs) do
 end
 
 local handlers = {
-  ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {border = "rounded"}),
-  ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {border = "rounded"}),
+  ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
+  ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" }),
 }
 
 -- mason
@@ -118,7 +118,6 @@ mason_lspconfig.setup_handlers({
       settings = servers[server_name],
     }
   end,
-
   ["rust_analyzer"] = function()
     require("rust-tools").setup({
       server = {
@@ -136,11 +135,12 @@ mason_lspconfig.setup_handlers({
 })
 
 -- null-ls
-mason_null_ls.setup({})
-mason_null_ls.setup_handlers {
-  function(source_name, methods)
-    require("mason-null-ls.automatic_setup")(source_name, methods)
-  end,
-}
+mason_null_ls.setup({
+  handlers = {
+    function(source_name, methods)
+      require("mason-null-ls.automatic_setup")(source_name, methods)
+    end,
+  }
+})
 
 null_ls.setup()

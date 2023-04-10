@@ -67,6 +67,9 @@ local plugins = {
   "tpope/vim-rhubarb",
   "lewis6991/gitsigns.nvim",
 
+  -- FOLDING
+  "anuvyklack/pretty-fold.nvim",
+
   -- COMMENT
   "numToStr/Comment.nvim",
 

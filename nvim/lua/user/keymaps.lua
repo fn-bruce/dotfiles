@@ -49,5 +49,5 @@ which_key.register({
   },
   h = { "<cmd>nohlsearch<cr>", "Clear Highlights" },
   n = { "<cmd>ene <BAR> startinsert <cr>", "New File" },
-  q = { ":qa<CR>", "Quit" },
+  q = { require("notify").dismiss, "Quit Notification" },
 }, { mode = "n", prefix = "<leader>", noremap = true, silent = true })
