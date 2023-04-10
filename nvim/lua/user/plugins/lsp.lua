@@ -49,6 +49,7 @@ local on_attach = function(client, bufnr)
       m = { "<cmd>Mason<cr>", "Mason" },
       a = { vim.lsp.buf.code_action, "Code Action" },
       r = { vim.lsp.buf.rename, "Rename" },
+      R = { "LspRestart", "Restart" },
       w = { require('telescope.builtin').lsp_dynamic_workspace_symbols, "Workspace Symbols" },
     },
   }, { mode = "n", prefix = "<leader>", noremap = true, silent = true })
