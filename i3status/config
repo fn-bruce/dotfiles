@@ -1,0 +1,50 @@
+order += "volume master"
+order += "tztime time"
+order += "tztime date"
+order += "disk /"
+order += "memory"
+order += "cpu_temperature 0"
+order += "battery 0"
+
+disk "/" {
+        format = "󰋊 %free"
+}
+
+memory {
+        format = "  %used"
+        threshold_degraded = "10%"
+        format_degraded = "MEMORY: %free"
+}
+
+cpu_temperature 0 {
+        format = "  %degrees °C"
+        path = "/sys/class/hwmon/hwmon1/temp1_input"
+}
+
+tztime time {
+        format = "󰥔  %I:%M:%S %p"
+}
+
+tztime date {
+        format = "  %m-%d-%Y"
+}
+
+battery 0 {
+        format = "%status %percentage |"
+        format_percentage = "%.00f%s"
+        format_down = "No battery"
+        status_chr = "󰂄"
+        status_bat = "󰁹"
+        status_unk = "󰂃"
+        status_full = "󰁹"
+        path = "/sys/class/power_supply/BAT%d/uevent"
+        low_threshold = 10
+}
+
+volume master {
+        format = "  %volume"
+        format_muted = "♪ 🛑"
+        device = "default"
+        mixer = "Master"
+        mixer_idx = 0
+}
