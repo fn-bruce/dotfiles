@@ -1,11 +1,11 @@
 # If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Path to your oh-my-zsh installation.
+# Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
+# load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="robbyrussell"
@@ -84,6 +84,10 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
+# export BROWSER='/usr/bin/firefox'
+# export EDITOR='/usr/bin/nvim'
+# export PAGER='/usr/bin/less'
+
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
@@ -98,33 +102,31 @@ source $ZSH/oh-my-zsh.sh
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
-export EDITOR="/opt/homebrew/bin/nvim"
-export RANGER_DEVICONS_SEPARATOR=" "
-export DOTNET_ROOT="/usr/local/share/dotnet"
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-export CARGO_HOME="${HOME}/.config/.cargo"
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# Set personal aliases, overriding those provided by Oh My Zsh libs,
+# plugins, and themes. Aliases can be placed here, though Oh My Zsh
+# users are encouraged to define aliases within a top-level file in
+# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
+# - $ZSH_CUSTOM/aliases.zsh
+# - $ZSH_CUSTOM/macos.zsh
 # For a full list of active aliases, run `alias`.
 #
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+alias paruadd="paru -Slq | fzf --multi --preview 'paru -Si {1}' | xargs -ro paru -S"
+alias parurm="paru -Qq | fzf --multi --preview 'paru -Qi {1}' | xargs -ro paru -Rns"
+alias pvp="$HOME/scripts/copy_then_delete_pdc_vpn_passwd.sh"
+alias sssc="maim --select | xclip -selection clipboard -target image/png"
+alias open="xdg-open"
 
-# Created by `pipx` on 2022-03-22 06:10:20
-export PATH="$PATH:$HOME/.local/bin"
-export PATH="$PATH:$HOME/projects/github/lua-language-server/bin"
-export PATH="$PATH:/Users/brucenguyen/.dotnet/tools"
-export PATH="$PATH:/Users/brucenguyen/.config/.cargo/bin"
+# fzf for zsh
+source <(fzf --zsh)
 
-alias luamake="$HOME/projects/github/lua-language-server/3rd/luamake/luamake"
-alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
+# nvm
+source /usr/share/nvm/init-nvm.sh
 
-# Runs nvm
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-# start starship  
-eval "$(starship init zsh)"
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
