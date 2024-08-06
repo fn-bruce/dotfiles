@@ -60,6 +60,17 @@ bar {
 
 ###############################################################################
 #                                                                             #
+#                               Window Settings                               #
+#                                                                             #
+###############################################################################
+
+for_window [class="Lxappearance"] floating enable sticky enable border normal
+for_window [class="Blueman-manager"] floating enable sticky enable border normal,resize set 1000 800, move position center
+for_window [class="blueman-manager"] floating enable sticky enable border normal,resize set 1000 800, move position center
+for_window [class="1Password"] move position center
+
+###############################################################################
+#                                                                             #
 #                         Dropdown/Scratchpad Windows                         #
 #                                                                             #
 ###############################################################################
@@ -119,8 +130,8 @@ bindsym $mod+d focus mode_toggle
 bindsym $mod+Shift+d floating toggle
 
 # Lock Screen
-bindsym $mod+Escape exec --no-startup-id rofi -show p -modi p:rofi-power-menu
-
+bindsym $mod+Shift+Escape exec --no-startup-id rofi -show p -modi p:rofi-power-menu
+bindsym $mod+Escape exec --no-startup-id ~/scripts/lock.sh
 ###############################################################################
 #                                                                             #
 #                              Multimedia Keys                                #
@@ -160,16 +171,16 @@ bindsym $mod+9 workspace number $ws9
 bindsym $mod+0 workspace number $ws10
 
 # Move Container to Workspace
-bindsym $mod+Shift+1 move container to workspace number $ws1
-bindsym $mod+Shift+2 move container to workspace number $ws2
-bindsym $mod+Shift+3 move container to workspace number $ws3
-bindsym $mod+Shift+4 move container to workspace number $ws4
-bindsym $mod+Shift+5 move container to workspace number $ws5
-bindsym $mod+Shift+6 move container to workspace number $ws6
-bindsym $mod+Shift+7 move container to workspace number $ws7
-bindsym $mod+Shift+8 move container to workspace number $ws8
-bindsym $mod+Shift+9 move container to workspace number $ws9
-bindsym $mod+Shift+0 move container to workspace number $ws10
+bindsym $mod+Shift+1 move container to workspace number $ws1; workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2; workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3; workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4; workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5; workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6; workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7; workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8; workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9; workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10; workspace number $ws10
 
 ###############################################################################
 #                                                                             #
