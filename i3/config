@@ -42,7 +42,7 @@ exec --no-startup-id nm-applet
 exec_always --no-startup-id ~/scripts/i3-center-mouse.py --all
 exec_always --no-startup-id autotiling
 exec_always --no-startup-id picom -b --config ~/.config/picom/picom.conf
-exec_always --no-startup-id feh --bg-scale $HOME/Pictures/sunny.png
+exec_always --no-startup-id feh --bg-scale $HOME/Pictures/arch.png
 
 ###############################################################################
 #                                                                             #
@@ -56,6 +56,8 @@ bar {
   status_command i3status
   font pango:FiraCode Nerd Font $fontSize
   tray_padding 4
+  separator_symbol " | "
+  padding 0 8px 0 0
 }
 
 ###############################################################################
@@ -67,7 +69,11 @@ bar {
 for_window [class="Lxappearance"] floating enable sticky enable border normal
 for_window [class="Blueman-manager"] floating enable sticky enable border normal,resize set 1000 800, move position center
 for_window [class="blueman-manager"] floating enable sticky enable border normal,resize set 1000 800, move position center
-for_window [class="1Password"] move position center
+for_window [class="1Password"] floating enable, resize set 1000 800, move position center
+for_window [class="1password"] floating enable, resize set 1000 800, move position center
+for_window [class="Pinta"] floating enable, sticky enable, resize set 2000 1200, move position center
+for_window [class="pavucontrol"] floating enable, sticky enable, resize set 1000 800, move position center
+
 
 ###############################################################################
 #                                                                             #
@@ -132,6 +138,9 @@ bindsym $mod+Shift+d floating toggle
 # Lock Screen
 bindsym $mod+Shift+Escape exec --no-startup-id rofi -show p -modi p:rofi-power-menu
 bindsym $mod+Escape exec --no-startup-id ~/scripts/lock.sh
+
+# Screenshot
+bindsym $mod+s exec --no-startup-id ~/scripts/screenshot.sh
 ###############################################################################
 #                                                                             #
 #                              Multimedia Keys                                #
@@ -141,12 +150,12 @@ bindsym $mod+Escape exec --no-startup-id ~/scripts/lock.sh
 # Audio Keys
 bindsym XF86AudioRaiseVolume exec --no-startup-id ~/scripts/volume.sh up && $refresh_i3status
 bindsym XF86AudioLowerVolume exec --no-startup-id ~/scripts/volume.sh down && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id pactl ~/scripts/volume.sh mute && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+bindsym XF86AudioMute exec --no-startup-id ~/scripts/volume.sh mute && $refresh_i3status
+bindsym XF86AudioMicMute exec --no-startup-id ~/scripts/toggle_mic_mute.sh && $refresh_i3status
 
 # Brightness Keys
-bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set +10%
-bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
+bindsym XF86MonBrightnessUp exec --no-startup-id ~/scripts/change_brightness.sh 10%+
+bindsym XF86MonBrightnessDown exec --no-startup-id ~/scripts/change_brightness.sh 10%-
 
 ###############################################################################
 #                                                                             #
