@@ -37,9 +37,9 @@ font pango:FiraCode Nerd Font $fontSize
 
 exec --no-startup-id dunst
 exec --no-startup-id dex --autostart --environment i3
-exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/scripts/lock.sh
+exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/scripts/lock.sh
 exec --no-startup-id nm-applet
-exec_always --no-startup-id ~/scripts/i3-center-mouse.py --all
+exec_always --no-startup-id ~/.local/scripts/i3-center-mouse.py --all
 exec_always --no-startup-id autotiling
 exec_always --no-startup-id picom -b --config ~/.config/picom/picom.conf
 exec_always --no-startup-id feh --bg-scale $HOME/Pictures/arch.png
@@ -137,10 +137,10 @@ bindsym $mod+Shift+d floating toggle
 
 # Lock Screen
 bindsym $mod+Shift+Escape exec --no-startup-id rofi -show p -modi p:rofi-power-menu
-bindsym $mod+Escape exec --no-startup-id ~/scripts/lock.sh
+bindsym $mod+Escape exec --no-startup-id ~/.local/scripts/lock.sh
 
 # Screenshot
-bindsym $mod+s exec --no-startup-id ~/scripts/screenshot.sh
+bindsym $mod+s exec --no-startup-id ~/.local/scripts/screenshot.sh
 ###############################################################################
 #                                                                             #
 #                              Multimedia Keys                                #
@@ -148,14 +148,14 @@ bindsym $mod+s exec --no-startup-id ~/scripts/screenshot.sh
 ###############################################################################
 
 # Audio Keys
-bindsym XF86AudioRaiseVolume exec --no-startup-id ~/scripts/volume.sh up && $refresh_i3status
-bindsym XF86AudioLowerVolume exec --no-startup-id ~/scripts/volume.sh down && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id ~/scripts/volume.sh mute && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id ~/scripts/toggle_mic_mute.sh && $refresh_i3status
+bindsym XF86AudioRaiseVolume exec --no-startup-id ~/.local/scripts/volume.sh up && $refresh_i3status
+bindsym XF86AudioLowerVolume exec --no-startup-id ~/.local/scripts/volume.sh down && $refresh_i3status
+bindsym XF86AudioMute exec --no-startup-id ~/.local/scripts/volume.sh mute && $refresh_i3status
+bindsym XF86AudioMicMute exec --no-startup-id ~/.local/scripts/toggle_mic_mute.sh && $refresh_i3status
 
 # Brightness Keys
-bindsym XF86MonBrightnessUp exec --no-startup-id ~/scripts/change_brightness.sh 10%+
-bindsym XF86MonBrightnessDown exec --no-startup-id ~/scripts/change_brightness.sh 10%-
+bindsym XF86MonBrightnessUp exec --no-startup-id ~/.local/scripts/change_brightness.sh 10%+
+bindsym XF86MonBrightnessDown exec --no-startup-id ~/.local/scripts/change_brightness.sh 10%-
 
 ###############################################################################
 #                                                                             #
