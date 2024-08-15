@@ -46,3 +46,4 @@ luac.out
 nvim/plugin/packer_compiled.lua
 java-debug/
 vscode-java-test/
+bin/.local/scripts/private/
