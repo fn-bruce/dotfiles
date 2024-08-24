@@ -1,6 +1,7 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
-export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.local/scripts:$PATH
+export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.local/scripts:$HOME/go/bin:$PATH
+export PATH=$PATH:/var/lib/snapd/snap/bin
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -117,10 +118,11 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias paruadd="paru -Slq | fzf --multi --preview 'paru -Si {1}' | xargs -ro paru -S"
 alias parurm="paru -Qq | fzf --multi --preview 'paru -Qi {1}' | xargs -ro paru -Rns"
-alias pvp="$HOME/scripts/copy_then_delete_pdc_vpn_passwd.sh"
+alias pvp="$HOME/.local/scripts/private/copy_then_delete_pdc_vpn_passwd.sh"
 alias sssc="maim --select | xclip -selection clipboard -target image/png"
 alias open="xdg-open"
 alias tms="~/.local/scripts/tmux-sessionizer.sh"
+alias ls="lsd"
 
 # fzf for zsh
 source <(fzf --zsh)

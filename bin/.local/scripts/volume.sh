@@ -7,12 +7,12 @@
 
 case $1 in
 up)
-  ~/scripts/change_volume.sh 10%+
+  ~/.local/scripts/change_volume.sh 10%+
   ;;
 down)
-  ~/scripts/change_volume.sh 10%-
+  ~/.local/scripts/change_volume.sh 10%-
   ;;
 mute)
-  ~/scripts/change_volume.sh toggle
+  ~/.local/scripts/change_volume.sh toggle
   ;;
 esac
