@@ -2,9 +2,13 @@
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.local/scripts:$HOME/go/bin:$PATH
 export PATH=$PATH:/var/lib/snapd/snap/bin
+export PATH=$PATH:$HOME/.local/scripts/private
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+
+export EDITOR=nvim
+export VISUAL=nvim
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time Oh My Zsh is loaded, in which case,
@@ -118,8 +122,6 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias paruadd="paru -Slq | fzf --multi --preview 'paru -Si {1}' | xargs -ro paru -S"
 alias parurm="paru -Qq | fzf --multi --preview 'paru -Qi {1}' | xargs -ro paru -Rns"
-alias pvp="$HOME/.local/scripts/private/copy_then_delete_pdc_vpn_passwd.sh"
-alias sssc="maim --select | xclip -selection clipboard -target image/png"
 alias open="xdg-open"
 alias tms="~/.local/scripts/tmux-sessionizer.sh"
 alias ls="lsd"
@@ -128,7 +130,7 @@ alias ls="lsd"
 source <(fzf --zsh)
 
 # nvm
-source /usr/share/nvm/init-nvm.sh
+#source /usr/share/nvm/init-nvm.sh
 
 # pyenv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -137,3 +139,7 @@ eval "$(pyenv init -)"
 
 # ranger
 export RANGER_LOAD_DEFAULT_RC=false
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

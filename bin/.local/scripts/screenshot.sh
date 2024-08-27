@@ -23,8 +23,8 @@ save_copy_or_edit() {
     notify-send "Screenshot copied to clipboard"
     ;;
   "Edit with Pinta")
-    mv "$file_path" ~/Pictures/Screenshots/temp_screenshot.png
-    pinta ~/Pictures/Screenshots/temp_screenshot.png &
+    mv "$file_path" /tmp/temp_screenshot.png
+    pinta /tmp/temp_screenshot.png &
     ;;
   *)
     exit 1

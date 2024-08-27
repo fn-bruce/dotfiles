@@ -38,11 +38,18 @@ font pango:FiraCode Nerd Font $fontSize
 exec --no-startup-id dunst
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/scripts/lock.sh
-exec --no-startup-id nm-applet
+exec_always --no-startup-id nm-applet
+exec_always --no-startup-id blueman-applet
 exec_always --no-startup-id ~/.local/scripts/i3-center-mouse.py --all
 exec_always --no-startup-id autotiling
 exec_always --no-startup-id picom -b --config ~/.config/picom/picom.conf
-exec_always --no-startup-id feh --bg-scale $HOME/Pictures/arch.png
+exec_always --no-startup-id feh --bg-scale $HOME/Pictures/Wallpaper/arch.png
+
+# Swap CapsLock with Escape
+exec_always --no-startup-id setxkbmap -option caps:escape
+
+# Set Key Delay
+exec_always --no-startup-id xset r rate 250 30
 
 ###############################################################################
 #                                                                             #
@@ -71,7 +78,7 @@ for_window [class="Blueman-manager"] floating enable sticky enable border normal
 for_window [class="blueman-manager"] floating enable sticky enable border normal,resize set 1000 800, move position center
 for_window [class="1Password"] floating enable, resize set 1000 800, move position center
 for_window [class="1password"] floating enable, resize set 1000 800, move position center
-for_window [class="Pinta"] floating enable, sticky enable, resize set 2000 1200, move position center
+for_window [class="Pinta"] floating enable, move position center
 for_window [class="pavucontrol"] floating enable, sticky enable, resize set 1000 800, move position center
 
 
@@ -106,7 +113,8 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 
 # Clipboard
-bindsym $mod+c exec --no-startup-id rofi -modi "clipboard:greenclip print" -show clipboard -run-command '{cmd}'
+exec --no-startup-id greenclip daemon>/dev/null
+bindsym $mod+c exec --no-startup-id $HOME/.local/scripts/clipboard.sh
 
 # Dropdown/Scratchpad
 bindsym $mod+u [instance="dropdown"] scratchpad show; [instance="dropdown"] move position center
