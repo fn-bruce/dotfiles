@@ -35,7 +35,7 @@ font pango:FiraCode Nerd Font $fontSize
 #                                                                             #
 ###############################################################################
 
-exec --no-startup-id dunst
+exec_always --no-startup-id dunst
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/scripts/lock.sh
 exec_always --no-startup-id nm-applet
@@ -46,7 +46,7 @@ exec_always --no-startup-id picom -b --config ~/.config/picom/picom.conf
 exec_always --no-startup-id feh --bg-scale $HOME/Pictures/Wallpaper/arch.png
 
 # Swap CapsLock with Escape
-exec_always --no-startup-id setxkbmap -option caps:escape
+# exec_always --no-startup-id setxkbmap -option caps:escape
 
 # Set Key Delay
 exec_always --no-startup-id xset r rate 250 30
@@ -79,7 +79,7 @@ for_window [class="blueman-manager"] floating enable sticky enable border normal
 for_window [class="1Password"] floating enable, resize set 1000 800, move position center
 for_window [class="1password"] floating enable, resize set 1000 800, move position center
 for_window [class="Pinta"] floating enable, move position center
-for_window [class="pavucontrol"] floating enable, sticky enable, resize set 1000 800, move position center
+for_window [class="pwvucontrol"] floating enable, sticky enable, resize set 1000 800, move position center
 
 
 ###############################################################################
@@ -137,13 +137,19 @@ bindsym $mod+v split v
 # Layout Management
 bindsym $mod+f fullscreen toggle
 
+# Swtich to default layout
+bindsym $mod+w layout default
+
+# Swtich to tabbed layout
+bindsym $mod+t layout tabbed
+
 # Focus Mode Toggle
 bindsym $mod+d focus mode_toggle
 
 # Floating Mode
 bindsym $mod+Shift+d floating toggle
 
-# Lock Screen
+# Lock Screen 
 bindsym $mod+Shift+Escape exec --no-startup-id rofi -show p -modi p:rofi-power-menu
 bindsym $mod+Escape exec --no-startup-id ~/.local/scripts/lock.sh
 
