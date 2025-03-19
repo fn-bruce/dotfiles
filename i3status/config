@@ -1,45 +1,36 @@
 order += "disk /"
 order += "memory"
 order += "cpu_temperature 0"
-order += "volume master"
 order += "tztime date"
 order += "battery 0"
 
 disk "/" {
-        format = "󰋊 %free"
+    format = "󰋊 %free free"
 }
 
 memory {
-        format = "  %used"
-        threshold_degraded = "10%"
-        format_degraded = "MEMORY: %free"
+    format = "󰍛 %used"
+    threshold_degraded = "10%"
+    format_degraded = "󰍛 %free free"
 }
 
 cpu_temperature 0 {
-        format = "%degrees °C"
-        path = "/sys/class/hwmon/hwmon1/temp1_input"
+    format = "󰔏 %degrees°C"
+    path = "/sys/class/hwmon/hwmon1/temp1_input"
 }
 
 tztime date {
-        format = "%m-%d-%Y %I:%M:%S%p"
+    format = "󰃭 %A, %b %d %I:%M %p"
 }
 
 battery 0 {
-        format = "%status %percentage"
-        format_percentage = "%.00f%s"
-        format_down = "No battery"
-        status_chr = "󰂄"
-        status_bat = "󰁹"
-        status_unk = "󰂃"
-        status_full = "󰁹"
-        path = "/sys/class/power_supply/BAT%d/uevent"
-        low_threshold = 10
-}
-
-volume master {
-        format = "♪ %volume"
-        format_muted = "♪ (muted)"
-        device = "default"
-        mixer = "Master"
-        mixer_idx = 0
+    format = "%status %percentage"
+    format_percentage = "%.0f%%"
+    format_down = "󰂑 No battery"
+    status_chr = "󰂄 Charging"
+    status_bat = "󰁺"
+    status_unk = "󰂑 Unknown"
+    status_full = "󰂅 Full"
+    path = "/sys/class/power_supply/BAT%d/uevent"
+    low_threshold = 10
 }

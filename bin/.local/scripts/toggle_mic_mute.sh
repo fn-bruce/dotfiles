@@ -1,23 +1,22 @@
 #!/bin/bash
-# toggleMicMute
+# toggleMicMute - Toggles microphone mute status using pactl for PulseAudio/PipeWire
 
 # Arbitrary but unique message tag
 msgTag="mymicmute"
 
-# Toggle mute status of the microphone using amixer
-amixer set Capture toggle >/dev/null
+# Toggle microphone mute status
+pactl set-source-mute @DEFAULT_SOURCE@ toggle
 
-# Query amixer for the current mute status of the microphone
-mute="$(amixer get Capture | grep -o '\[off\]\|\[on\]' | head -n1)"
+# Get the current mute status
+mute_status=$(pactl get-source-mute @DEFAULT_SOURCE@ | awk '{print $2}')
 
-if [[ "$mute" == "[off]" ]]; then
-  # Show the microphone muted notification
+if [[ "$mute_status" == "yes" ]]; then
+  # Microphone is now muted
   dunstify -a "toggleMicMute" -u low -i microphone-sensitivity-muted -h string:x-dunst-stack-tag:$msgTag "Microphone muted"
 else
-  # Show the microphone unmuted notification
-  dunstify -a "toggleMicMute" -u low -i microphone-sensitivity-high -h string:x-dunst-stack-tag:$msgTag \
-    "Microphone unmuted"
+  # Microphone is now unmuted
+  dunstify -a "toggleMicMute" -u low -i microphone-sensitivity-high -h string:x-dunst-stack-tag:$msgTag "Microphone unmuted"
 fi
 
-# Play a sound when the microphone mute status is toggled (optional)
+# Optional: Play a sound to indicate mute/unmute status
 canberra-gtk-play -i audio-volume-change -d "toggleMicMute"
