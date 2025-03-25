@@ -2,6 +2,7 @@ order += "disk /"
 order += "memory"
 order += "cpu_temperature 0"
 order += "tztime date"
+order += "tztime time"
 order += "battery 0"
 
 disk "/" {
@@ -20,7 +21,11 @@ cpu_temperature 0 {
 }
 
 tztime date {
-    format = "󰃭 %A, %b %d %I:%M %p"
+    format = "󰃭 %A, %b %d"
+}
+
+tztime time {
+    format = "󰅐 %I:%M %p"
 }
 
 battery 0 {

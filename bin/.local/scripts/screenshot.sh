@@ -14,8 +14,8 @@ save_copy_or_edit() {
 
   case "$save_copy_edit_chosen" in
   "Save Image")
-    mv "$file_path" ~/Pictures/Screenshots/
-    notify-send "Screenshot saved to ~/Pictures/Screenshots/"
+    mv "$file_path" ~/pictures/screenshots/
+    notify-send "Screenshot saved to ~/pictures/screenshots/"
     ;;
   "Copy to Clipboard")
     xclip -selection clipboard -t image/png -i "$file_path"

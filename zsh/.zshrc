@@ -126,6 +126,9 @@ alias parurm="paru -Qq | fzf --multi --preview 'paru -Qi {1}' | xargs -ro paru -
 alias open="xdg-open"
 alias tms="~/.local/scripts/tmux-sessionizer.sh"
 alias ls="lsd"
+alias ll="lsd -l --header"
+alias la="lsd -la --header"
+alias lt="lsd --tree"
 
 # fzf for zsh
 source <(fzf --zsh)

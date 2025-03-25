@@ -35,10 +35,10 @@ font pango:FiraCode Nerd Font $fontSize
 #                                                                             #
 ###############################################################################
 
-exec --no-startup-id ~/.fehbg
+exec --no-startup-id xss-lock -- betterlockscreen -l dim
+exec --no-startup-id source ~/.fehbg
 exec --no-startup-id dunst
 exec --no-startup-id dex --autostart --environment i3
-exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/scripts/lock.sh
 exec --no-startup-id nm-applet
 exec --no-startup-id blueman-applet
 exec --no-startup-id ~/.local/scripts/i3-center-mouse.py --all
@@ -92,13 +92,6 @@ for_window [instance="dropdown"] move scratchpad
 for_window [instance="dropdown"] border pixel 4
 exec $term --name dropdown
 
-# Spotify
-for_window [instance="spotify"] floating enable
-for_window [instance="spotify"] resize set 1000 800
-for_window [instance="spotify"] move scratchpad
-for_window [instance="spotify"] border pixel 4
-exec --no-startup-id spotify
-
 ###############################################################################
 #                                                                             #
 #                                Key Bindings                                 #
@@ -148,7 +141,7 @@ bindsym $mod+Shift+d floating toggle
 
 # Lock Screen 
 bindsym $mod+Shift+Escape exec --no-startup-id rofi -show p -modi p:~/.local/scripts/rofi-power-menu
-bindsym $mod+Escape exec --no-startup-id ~/.local/scripts/lock.sh
+bindsym $mod+Escape exec --no-startup-id betterlockscreen -l dim
 
 # Screenshot
 bindsym $mod+s exec --no-startup-id ~/.local/scripts/screenshot.sh
@@ -215,10 +208,10 @@ bindsym $mod+k focus up
 bindsym $mod+l focus right
 
 # Move Window
-bindsym $mod+Shift+h move left
-bindsym $mod+Shift+k move down
-bindsym $mod+Shift+j move up
-bindsym $mod+Shift+l move right
+bindsym $mod+Shift+h move left 50 px
+bindsym $mod+Shift+j move down 50 px
+bindsym $mod+Shift+k move up 50 px
+bindsym $mod+Shift+l move right 50 px
 
 # Focus Window with Arrow Keys
 bindsym $mod+Left focus left
@@ -227,7 +220,40 @@ bindsym $mod+Up focus up
 bindsym $mod+Right focus right
 
 # Move Window with Arrow Keys
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Down move down
-bindsym $mod+Shift+Up move up
-bindsym $mod+Shift+Right move right
+bindsym $mod+Shift+Left move left 50 px
+bindsym $mod+Shift+Down move down 50 px
+bindsym $mod+Shift+Up move up 50 px
+bindsym $mod+Shift+Right move right 50 px
+
+# Enter resize mode
+mode "resize" {
+    bindsym h resize shrink width 25 px or 25 ppt
+    bindsym j resize shrink height 25 px or 25 ppt
+    bindsym k resize grow height 25 px or 25 ppt
+    bindsym l resize grow width 25 px or 25 ppt
+
+    # Use arrow keys as well
+    bindsym Left  resize shrink width 25 px or 25 ppt
+    bindsym Down  resize shrink height 25 px or 25 ppt
+    bindsym Up    resize grow height 25 px or 25 ppt
+    bindsym Right resize grow width 25 px or 25 ppt
+
+    # Move Window
+    bindsym $mod+Shift+h move left 50 px
+    bindsym $mod+Shift+j move down 50 px
+    bindsym $mod+Shift+k move up 50 px
+    bindsym $mod+Shift+l move right 50 px
+
+    # Move Window with Arrow Keys
+    bindsym $mod+Shift+Left move left 50 px
+    bindsym $mod+Shift+Down move down 50 px
+    bindsym $mod+Shift+Up move up 50 px
+    bindsym $mod+Shift+Right move right 50 px
+
+    # Exit resize mode
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+
+# Bind a key to enter resize mode (Mod+r)
+bindsym $mod+r mode "resize"
