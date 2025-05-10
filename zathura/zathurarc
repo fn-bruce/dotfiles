@@ -1,3 +1,4 @@
+set font "FiraCode Nerd Font 16"
 set selection-clipboard clipboard
 set scroll-step 100
 map u scroll half-up
