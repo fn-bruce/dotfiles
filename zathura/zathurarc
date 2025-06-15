@@ -13,7 +13,6 @@ map p print
 
 set adjust-open "best-fit"         # Open PDF zoomed to best fit
 set pages-per-row 1                # Single page layout
-set smooth-scroll "true"
 
 set zoom-min 10
 set guioptions ""
