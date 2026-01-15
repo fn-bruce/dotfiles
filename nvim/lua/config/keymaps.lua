@@ -4,12 +4,7 @@ vim.keymap.set('n', '<esc>', '<cmd>nohlsearch<cr>')
 -- diagnostic keymaps
 vim.keymap.set('n', '<leader>cq', vim.diagnostic.setloclist, { desc = 'Diagnostic Quickfix List' })
 
--- exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. otherwise, you normally need to press <c-\><c-n>, which
--- is not what someone will guess without a bit more experience.
---
--- note: this won't work in all terminal emulators/tmux/etc. try your own mapping
--- or just use <c-\><c-n> to exit terminal mode
+-- exit terminal mode
 vim.keymap.set('t', '<esc><esc>', '<c-\\><c-n>', { desc = 'exit terminal mode' })
 
 -- keybinds to make split navigation easier.
@@ -21,3 +16,13 @@ vim.keymap.set('n', '<c-k>', '<c-w><c-k>', { desc = 'move focus to the upper win
 
 -- shortcut for lazy
 vim.keymap.set('n', '<leader>L', '<cmd>Lazy<cr>', { desc = 'Lazy' })
+
+-- buffer quick navigation
+vim.keymap.set('n', 'L', '<cmd>bn<cr>')
+vim.keymap.set('n', 'H', '<cmd>bp<cr>')
+
+-- buffer management
+vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<cr>', { desc = 'Delete buffer' })
+vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<cr>', { desc = 'Force delete buffer' })
+vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<cr>', { desc = 'Close other buffers' })
+vim.keymap.set('n', '<leader>ba', '<cmd>%bdelete<cr>', { desc = 'Close all buffers' })
