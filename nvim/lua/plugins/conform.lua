@@ -12,7 +12,7 @@ return {
         }
       end,
       mode = '',
-      desc = 'Format buffer',
+      desc = 'Format Buffer',
     },
   },
   opts = {
