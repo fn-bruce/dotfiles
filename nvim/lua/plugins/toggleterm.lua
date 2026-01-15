@@ -4,6 +4,7 @@ return {
     version = '*',
     config = {
       open_mapping = [[<c-\>]],
+      shade_terminals = false,
     },
   },
 }
