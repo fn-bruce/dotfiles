@@ -1,25 +1,27 @@
 return {
-  "kawre/leetcode.nvim",
-  build = ":TSUpdate html", -- if you have `nvim-treesitter` installed
+  'kawre/leetcode.nvim',
+  build = ':TSUpdate html', -- if you have `nvim-treesitter` installed
+  lazy = false,
   dependencies = {
     -- include a picker of your choice, see picker section for more details
-    "nvim-lua/plenary.nvim",
-    "MunifTanjim/nui.nvim",
+    'nvim-lua/plenary.nvim',
+    'MunifTanjim/nui.nvim',
   },
   opts = {
     -- configuration goes here
   },
   keys = {
-    { "<leader>lcq", "<cmd>Leet<cr>", desc = "Open Leetcode Menu" },
-    { "<leader>lcl", "<cmd>Leet list<cr>", desc = "List Problems" },
-    { "<leader>lcd", "<cmd>Leet desc<cr>", desc = "Toggle Description" },
-    { "<leader>lcr", "<cmd>Leet run<cr>", desc = "Run Code" },
-    { "<leader>lcs", "<cmd>Leet submit<cr>", desc = "Submit Solution" },
-    { "<leader>lci", "<cmd>Leet info<cr>", desc = "Problem Info" },
-    { "<leader>lcc", "<cmd>Leet console<cr>", desc = "Toggle Console" },
-    { "<leader>lct", "<cmd>Leet tabs<cr>", desc = "Show Tabs" },
-    { "<leader>lcy", "<cmd>Leet yank<cr>", desc = "Yank Solution" },
-    { "<leader>lcn", "<cmd>Leet random<cr>", desc = "Random Problem" },
-    { "<leader>lco", "<cmd>Leet open<cr>", desc = "Open in Browser" },
-  }
+    { '<leader>lo', '<cmd>Leet<cr>', desc = 'Open Leetcode Menu' },
+    { '<leader>ll', '<cmd>Leet list<cr>', desc = 'List Problems' },
+    { '<leader>ld', '<cmd>Leet desc<cr>', desc = 'Toggle Description' },
+    { '<leader>lr', '<cmd>Leet run<cr>', desc = 'Run Code' },
+    { '<leader>lR', '<cmd>Leet reset<cr>', desc = 'Reset Code' },
+    { '<leader>ls', '<cmd>Leet submit<cr>', desc = 'Submit Solution' },
+    { '<leader>li', '<cmd>Leet info<cr>', desc = 'Problem Info' },
+    { '<leader>lc', '<cmd>Leet console<cr>', desc = 'Toggle Console' },
+    { '<leader>lt', '<cmd>Leet tabs<cr>', desc = 'Show Tabs' },
+    { '<leader>ly', '<cmd>Leet yank<cr>', desc = 'Yank Solution' },
+    { '<leader>lz', '<cmd>Leet random<cr>', desc = 'Random Problem' },
+    { '<leader>lO', '<cmd>Leet open<cr>', desc = 'Open in Browser' },
+  },
 }

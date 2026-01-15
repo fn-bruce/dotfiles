@@ -1,12 +1,23 @@
--- Keymaps are automatically loaded on the VeryLazy event
--- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
--- Add any additional keymaps here
+-- clear highlights on search when pressing <esc> in normal mode
+vim.keymap.set('n', '<esc>', '<cmd>nohlsearch<cr>')
 
-local map = vim.keymap.set
-map("n", "<leader>ll", "<cmd>Lazy<cr>", { desc = "Lazy" })
+-- diagnostic keymaps
+vim.keymap.set('n', '<leader>cq', vim.diagnostic.setloclist, { desc = 'Diagnostic Quickfix List' })
 
-local wk = require("which-key")
-wk.add({
-  { "<leader>l", group = "lazy/leetcode" },
-  { "<leader>lc", group = "leetcode" },
-})
+-- exit terminal mode in the builtin terminal with a shortcut that is a bit easier
+-- for people to discover. otherwise, you normally need to press <c-\><c-n>, which
+-- is not what someone will guess without a bit more experience.
+--
+-- note: this won't work in all terminal emulators/tmux/etc. try your own mapping
+-- or just use <c-\><c-n> to exit terminal mode
+vim.keymap.set('t', '<esc><esc>', '<c-\\><c-n>', { desc = 'exit terminal mode' })
+
+-- keybinds to make split navigation easier.
+--  use ctrl+<hjkl> to switch between windows
+vim.keymap.set('n', '<c-h>', '<c-w><c-h>', { desc = 'move focus to the left window' })
+vim.keymap.set('n', '<c-l>', '<c-w><c-l>', { desc = 'move focus to the right window' })
+vim.keymap.set('n', '<c-j>', '<c-w><c-j>', { desc = 'move focus to the lower window' })
+vim.keymap.set('n', '<c-k>', '<c-w><c-k>', { desc = 'move focus to the upper window' })
+
+-- shortcut for lazy
+vim.keymap.set('n', '<leader>L', '<cmd>Lazy<cr>', { desc = 'Lazy' })
