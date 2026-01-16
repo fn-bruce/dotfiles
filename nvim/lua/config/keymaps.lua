@@ -17,9 +17,9 @@ vim.keymap.set('n', '<c-k>', '<c-w><c-k>', { desc = 'move focus to the upper win
 -- shortcut for lazy
 vim.keymap.set('n', '<leader>L', '<cmd>Lazy<cr>', { desc = 'Lazy' })
 
--- buffer quick navigation
-vim.keymap.set('n', 'L', '<cmd>bn<cr>')
-vim.keymap.set('n', 'H', '<cmd>bp<cr>')
+-- Move buffers
+vim.keymap.set('n', '<S-h>', '<cmd>BufferLineCyclePrev<cr>')
+vim.keymap.set('n', '<S-l>', '<cmd>BufferLineCycleNext<cr>')
 
 -- buffer management
 vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<cr>', { desc = 'Delete buffer' })

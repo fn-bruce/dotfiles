@@ -11,13 +11,15 @@ return {
     },
 
     spec = {
-      { '<leader>u', group = '[u]i' },
-      { '<leader>g', group = '[g]it', mode = { 'n', 'v' } },
-      { '<leader>o', group = '[o]verseer' },
-      { '<leader>l', group = '[l]eetcode' },
-      { '<leader>d', group = '[d]ebug' },
+      { '<leader>b', group = '[b]uffer' },
       { '<leader>c', group = '[c]ode', mode = { 'n', 'v' } },
+      { '<leader>d', group = '[d]ebug' },
+      { '<leader>g', group = '[g]it', mode = { 'n', 'v' } },
+      { '<leader>l', group = '[l]eetcode' },
+      { '<leader>o', group = '[o]verseer' },
       { '<leader>s', group = '[s]earch' },
+      { '<leader>t', group = '[t]ab' },
+      { '<leader>u', group = '[u]i' },
     },
   },
 }
