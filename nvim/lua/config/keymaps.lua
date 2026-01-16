@@ -28,4 +28,9 @@ vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<cr>', { desc = '
 vim.keymap.set('n', '<leader>ba', '<cmd>%bdelete<cr>', { desc = 'Close all buffers' })
 
 -- notifications
-vim.keymap.set('n', '<leader>un', function() require('mini.notify').clear() end, { desc = 'Clear notifications' })
+vim.keymap.set('n', '<leader>un', function()
+  require('mini.notify').clear()
+end, { desc = 'Clear notifications' })
+
+-- Paste without yanking selection
+vim.keymap.set('v', 'p', '"_dP')
