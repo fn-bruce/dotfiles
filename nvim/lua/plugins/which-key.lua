@@ -18,7 +18,6 @@ return {
       { '<leader>l', group = '[l]eetcode' },
       { '<leader>o', group = '[o]verseer' },
       { '<leader>s', group = '[s]earch' },
-      { '<leader>t', group = '[t]ab' },
       { '<leader>u', group = '[u]i' },
     },
   },

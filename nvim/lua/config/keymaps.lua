@@ -26,3 +26,6 @@ vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<cr>', { desc = 'Delete buffer' }
 vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<cr>', { desc = 'Force delete buffer' })
 vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<cr>', { desc = 'Close other buffers' })
 vim.keymap.set('n', '<leader>ba', '<cmd>%bdelete<cr>', { desc = 'Close all buffers' })
+
+-- notifications
+vim.keymap.set('n', '<leader>un', function() require('mini.notify').clear() end, { desc = 'Clear notifications' })
