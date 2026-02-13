@@ -67,7 +67,6 @@ return {
         end, { desc = 'Diff Against Last Commit' })
         -- Toggles
         map('n', '<leader>ub', gitsigns.toggle_current_line_blame, { desc = 'Toggle Git Show Blame Line' })
-        map('n', '<leader>ud', gitsigns.preview_hunk_inline, { desc = 'Toggle Git Show Deleted' })
       end,
     },
   },

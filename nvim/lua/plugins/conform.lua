@@ -32,6 +32,7 @@ return {
       end
     end,
     formatters_by_ft = {
+      make = { 'bake' },
       lua = { 'stylua' },
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
