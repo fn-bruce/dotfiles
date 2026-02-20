@@ -37,7 +37,7 @@ end, { desc = 'Close other buffers' })
 
 -- notifications
 vim.keymap.set('n', '<leader>un', function()
-  require('mini.notify').clear()
+  require('snacks.notifier').clear()
 end, { desc = 'Clear notifications' })
 
 -- Paste without yanking selection
@@ -46,4 +46,19 @@ vim.keymap.set('v', 'p', '"_dP')
 -- Toggle diagnostics
 vim.keymap.set('n', '<leader>ud', function()
   vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+  if vim.diagnostic.is_enabled() then
+    vim.notify 'Diagnostics On'
+  else
+    vim.notify 'Diagnostics Off'
+  end
 end, { desc = 'Toggle diagnostics' })
+
+-- Toggle text wrap
+vim.keymap.set('n', '<leader>uw', function()
+  vim.wo.wrap = not vim.wo.wrap
+  if vim.wo.wrap then
+    vim.notify 'Text Wrap On'
+  else
+    vim.notify 'Text Wrap Off'
+  end
+end, { desc = 'Toggle text wrap' })

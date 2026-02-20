@@ -11,6 +11,7 @@ return {
     },
 
     spec = {
+      { '<leader>a', group = '[a]i', mode = { 'n', 'v' } },
       { '<leader>b', group = '[b]uffer' },
       { '<leader>c', group = '[c]ode', mode = { 'n', 'v' } },
       { '<leader>d', group = '[d]ebug' },
