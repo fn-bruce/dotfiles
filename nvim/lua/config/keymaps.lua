@@ -67,3 +67,25 @@ vim.keymap.set('n', '<leader>uw', function()
     vim.notify 'Text Wrap Off'
   end
 end, { desc = 'Toggle text wrap' })
+
+-- Toggle zoom
+vim.keymap.set('n', '<leader>z', function()
+  local function zoom_in()
+    vim.cmd [[tab split]]
+    vim.o.showtabline = 0
+    vim.api.nvim_tabpage_set_var(0, 'zoom', 'zoom')
+  end
+
+  local function zoom_out()
+    vim.cmd [[mkview]]
+    vim.o.showtabline = 1
+    vim.cmd [[tab close]]
+    vim.cmd [[loadview]]
+  end
+
+  if not vim.t['zoom'] then
+    zoom_in()
+  elseif vim.t['zoom'] == 'zoom' then
+    zoom_out()
+  end
+end, { desc = 'Toggle zoom' }) -- Toggle zoom
