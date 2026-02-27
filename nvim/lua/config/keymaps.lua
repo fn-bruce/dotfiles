@@ -35,9 +35,14 @@ vim.keymap.set('n', '<leader>bo', function()
   end
 end, { desc = 'Close other buffers' })
 
--- notifications
+-- clear notifications
 vim.keymap.set('n', '<leader>un', function()
-  require('snacks.notifier').clear()
+  require('snacks.notifier').hide()
+end, { desc = 'Clear notifications' })
+
+-- show notification history
+vim.keymap.set('n', '<leader>n', function()
+  require('snacks.notifier').show_history()
 end, { desc = 'Clear notifications' })
 
 -- Paste without yanking selection
