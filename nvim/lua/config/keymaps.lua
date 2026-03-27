@@ -2,6 +2,7 @@
 vim.keymap.set('n', '<esc>', '<cmd>nohlsearch<cr>')
 
 -- diagnostic keymaps
+vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, { desc = 'Line Diagnostics' })
 vim.keymap.set('n', '<leader>cq', vim.diagnostic.setloclist, { desc = 'Diagnostic Quickfix List' })
 vim.keymap.set('n', '<leader>ci', '<cmd>GuessIndent<cr>', { desc = 'Guess indent' })
 
