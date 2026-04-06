@@ -51,5 +51,9 @@ return {
       enabled = true,
       preset = {},
     },
+    image = {
+      enabled = true,
+      preset = {},
+    }
   },
 }

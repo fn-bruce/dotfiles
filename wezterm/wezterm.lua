@@ -19,11 +19,14 @@ config.window_decorations = "RESIZE"
 -- config.macos_window_background_blur = 10
 
 config.window_padding = {
-	top = 10,
+	top = 0,
 	right = 0,
 	left = 0,
 	bottom = 0,
 }
+
+config.use_resize_increments = true
+config.automatically_reload_config = true
 
 -- and finally, return the configuration to wezterm
 return config
