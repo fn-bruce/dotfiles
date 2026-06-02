@@ -93,9 +93,7 @@ outer.right =      10
 # You can uncomment this line to open up terminal with alt + enter shortcut
 # See: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
 # alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
-alt-enter = 'exec-and-forget open -n /Applications/WezTerm.app'
-alt-b = 'exec-and-forget open -n /Applications/Brave\ Browser.app'
-alt-p = 'exec-and-forget open -n /Applications/1Password.app/'
+# alt-p = 'exec-and-forget open -n /Applications/1Password.app/'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#layout
 alt-period = 'layout tiles horizontal vertical'

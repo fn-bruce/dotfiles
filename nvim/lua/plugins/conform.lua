@@ -25,6 +25,7 @@ return {
       -- javascript = { "prettierd", "prettier", stop_after_first = true },
       make = { 'bake' },
       lua = { 'stylua' },
+      markdown = { 'prettier' },
     },
   },
 }

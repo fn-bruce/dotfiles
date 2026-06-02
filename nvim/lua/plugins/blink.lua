@@ -36,6 +36,14 @@ return {
           },
         },
         opts = {},
+        config = function(_, opts)
+          local luasnip = require 'luasnip'
+          luasnip.setup(opts)
+
+          require('luasnip.loaders.from_vscode').load {
+            paths = { vim.fn.stdpath 'config' .. '/lua/snippets' },
+          }
+        end,
       },
       'folke/lazydev.nvim',
     },

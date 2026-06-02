@@ -8,7 +8,7 @@ return {
     'MunifTanjim/nui.nvim',
   },
   opts = {
-    -- configuration goes here
+    image_support = true,
   },
   keys = {
     { '<leader>lo', '<cmd>Leet<cr>', desc = 'Open Leetcode Menu' },

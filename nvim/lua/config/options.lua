@@ -58,10 +58,13 @@ vim.o.scrolloff = 10
 -- instead raise a dialog asking if you wish to save the current file(s)
 vim.o.confirm = true
 
+-- replace tabs with spaces
+vim.o.expandtab = true
+
 -- default indentation
 vim.o.shiftwidth = 2
 vim.o.autoindent = true
 vim.o.smartindent = true
 vim.o.tabstop = 2
 
-vim.o.conceallevel = 1
+vim.o.conceallevel = 2

@@ -1,0 +1,7 @@
+{
+	"test": {
+		"prefix": "test",
+		"body": "# ${1:} ($1)",
+		"description": "Snippet for header"
+	}
+}
