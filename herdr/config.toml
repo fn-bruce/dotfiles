@@ -1,0 +1,14 @@
+[keys]
+prefix = "ctrl+a"
+split_vertical = "prefix+|"
+split_horizontal = "prefix+minus"
+
+[terminal]
+new_cwd = "follow" # new panes/tabs inherit current directory
+
+[theme]
+name = "tokyo-night"
+auto_switch = false
+
+[experimental]
+pane_history = false
