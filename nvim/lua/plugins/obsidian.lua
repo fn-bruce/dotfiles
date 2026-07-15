@@ -55,7 +55,7 @@ return {
         ['reference'] = { notes_subdir = 'reference' },
       },
     },
-    daily_notes = { folder = 'daily' },
+    daily_notes = { folder = 'daily', template = 'daily' },
     frontmatter = { enabled = false },
   },
 }
