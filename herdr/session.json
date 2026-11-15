@@ -2,38 +2,158 @@
   "version": 3,
   "workspaces": [
     {
-      "id": "w6",
-      "custom_name": null,
-      "identity_cwd": "/Users/brucen/Projects/dotfiles",
+      "id": "w7",
+      "custom_name": "notes",
+      "identity_cwd": "/Users/brucen/Library/Mobile Documents/iCloud~md~obsidian/Documents/Personal",
       "public_pane_numbers": {
-        "11": 1
+        "1": 1,
+        "2": 9,
+        "5": 16,
+        "20": 62
       },
-      "next_public_pane_number": 3,
+      "next_public_pane_number": 77,
       "public_tab_numbers": [
-        1
+        1,
+        3,
+        7,
+        16
       ],
-      "next_public_tab_number": 2,
+      "next_public_tab_number": 17,
+      "tabs": [
+        {
+          "custom_name": "writing",
+          "layout": {
+            "Pane": 1
+          },
+          "panes": {
+            "1": {
+              "cwd": "/Users/brucen/Library/Mobile Documents/iCloud~md~obsidian/Documents/Personal"
+            }
+          },
+          "zoomed": false,
+          "focused": 1,
+          "root_pane": 1
+        },
+        {
+          "custom_name": "explore",
+          "layout": {
+            "Pane": 2
+          },
+          "panes": {
+            "2": {
+              "cwd": "/private/tmp/code"
+            }
+          },
+          "zoomed": false,
+          "focused": 2,
+          "root_pane": 2
+        },
+        {
+          "custom_name": "config",
+          "layout": {
+            "Pane": 5
+          },
+          "panes": {
+            "5": {
+              "cwd": "/Users/brucen/Projects/dotfiles/herdr"
+            }
+          },
+          "zoomed": false,
+          "focused": 5,
+          "root_pane": 5
+        },
+        {
+          "custom_name": "test",
+          "layout": {
+            "Pane": 20
+          },
+          "panes": {
+            "20": {
+              "cwd": "/Users/brucen/Projects/dotfiles/herdr"
+            }
+          },
+          "zoomed": false,
+          "focused": 20,
+          "root_pane": 20
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w8",
+      "custom_name": "codecrafters",
+      "identity_cwd": "/Users/brucen/Projects/codecrafters/codecrafters-sqlite-cpp",
+      "public_pane_numbers": {
+        "38": 4,
+        "39": 5,
+        "35": 1,
+        "41": 7
+      },
+      "next_public_pane_number": 8,
+      "public_tab_numbers": [
+        1,
+        3
+      ],
+      "next_public_tab_number": 4,
       "tabs": [
         {
           "custom_name": "dev",
           "layout": {
-            "Pane": 11
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.5,
+              "first": {
+                "Pane": 35
+              },
+              "second": {
+                "Pane": 38
+              }
+            }
           },
           "panes": {
-            "11": {
-              "cwd": "/Users/brucen/Projects/dotfiles"
+            "38": {
+              "cwd": "/Users/brucen/Projects/codecrafters/codecrafters-sqlite-cpp"
+            },
+            "35": {
+              "cwd": "/Users/brucen/Projects/codecrafters/codecrafters-sqlite-cpp"
             }
           },
           "zoomed": false,
-          "focused": 11,
-          "root_pane": 11
+          "focused": 38,
+          "root_pane": 35
+        },
+        {
+          "custom_name": "sqlite-docs",
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.5,
+              "first": {
+                "Pane": 39
+              },
+              "second": {
+                "Pane": 41
+              }
+            }
+          },
+          "panes": {
+            "41": {
+              "cwd": "/Users/brucen/Projects/codecrafters/codecrafters-sqlite-cpp"
+            },
+            "39": {
+              "cwd": "/Users/brucen/Projects/codecrafters/codecrafters-sqlite-cpp"
+            }
+          },
+          "zoomed": false,
+          "focused": 41,
+          "root_pane": 39
         }
       ],
-      "active_tab": 0
+      "active_tab": 1
     }
   ],
-  "active": 0,
-  "selected": 0,
+  "active": 1,
+  "selected": 1,
   "sidebar_width": 26,
   "sidebar_section_split": 0.5,
   "collapsed_space_keys": []

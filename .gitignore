@@ -47,3 +47,9 @@ nvim/plugin/packer_compiled.lua
 java-debug/
 vscode-java-test/
 bin/.local/scripts/private/
+
+# Logs
+*.log
+
+# herdr plugin download cache
+herdr/plugins/github/

@@ -1,0 +1,56 @@
+[
+  {
+    "plugin_id": "url.fzf-picker",
+    "name": "FZF URL Picker",
+    "version": "0.1.0",
+    "min_herdr_version": "0.7.0",
+    "description": "Scan terminal panes for URLs and interactively pick one with fzf",
+    "manifest_path": "/Users/brucen/Projects/dotfiles/herdr/plugins/github/url.fzf-picker-bbe028f7cf4c/herdr-plugin.toml",
+    "plugin_root": "/Users/brucen/Projects/dotfiles/herdr/plugins/github/url.fzf-picker-bbe028f7cf4c",
+    "enabled": true,
+    "platforms": [
+      "linux",
+      "macos"
+    ],
+    "build": [
+      {
+        "command": [
+          "go",
+          "build",
+          "-o",
+          "herdr-fzf-url"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "pick-url",
+        "title": "Pick URL from Panes",
+        "contexts": [
+          "pane"
+        ],
+        "command": [
+          "./herdr-fzf-url"
+        ]
+      }
+    ],
+    "panes": [
+      {
+        "id": "url-picker",
+        "title": "URL Picker",
+        "placement": "overlay",
+        "command": [
+          "./herdr-fzf-url"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "github",
+      "owner": "x0d7x",
+      "repo": "herdr-fzf-url",
+      "resolved_commit": "7f5fc52a4367c537cae11b636bb27bc26e2279ad",
+      "managed_path": "/Users/brucen/.config/herdr/plugins/github/url.fzf-picker-bbe028f7cf4c",
+      "installed_unix_ms": 1784507676460
+    }
+  }
+]

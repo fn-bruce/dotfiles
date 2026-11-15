@@ -1,7 +1,15 @@
+onboarding = false
+
 [keys]
 prefix = "ctrl+a"
 split_vertical = "prefix+|"
 split_horizontal = "prefix+minus"
+
+[[keys.command]]
+key = "prefix+u"
+type = "shell"
+command = "herdr plugin pane open --plugin url.fzf-picker --entrypoint url-picker"
+description = "Pick URL"
 
 [terminal]
 new_cwd = "follow" # new panes/tabs inherit current directory
@@ -12,3 +20,9 @@ auto_switch = false
 
 [experimental]
 pane_history = false
+
+[ui.toast]
+delivery = "herdr"
+
+[ui.sound]
+path = "./sounds/caught-pokemon.mp3"
