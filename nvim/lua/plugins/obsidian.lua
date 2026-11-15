@@ -40,22 +40,19 @@ return {
     },
     legacy_commands = false,
     workspaces = {
-      { name = 'personal', path = '~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Personal' },
-      { name = 'work', path = '~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Work' },
+      { name = 'personal', path = '~/Notes/bruce-brain' },
     },
     templates = {
-      folder = 'templates',
+      folder = 'zettel/templates',
       date_format = '%Y-%m-%d-%a',
       time_format = '%H:%M',
       customizations = {
-        ['daily'] = { notes_subdir = 'daily' },
-        ['fleeting'] = { notes_subdir = 'fleeting' },
-        ['literature'] = { notes_subdir = 'literature' },
-        ['permanent'] = { notes_subdir = 'permanent' },
-        ['reference'] = { notes_subdir = 'reference' },
+        ['fleeting'] = { notes_subdir = 'zettel/fleeting' },
+        ['literature'] = { notes_subdir = 'zettel/literature' },
+        ['permanent'] = { notes_subdir = 'zettel/permanent' },
       },
     },
-    daily_notes = { folder = 'daily', template = 'daily' },
+    daily_notes = { folder = 'zettel/daily', template = 'daily' },
     frontmatter = { enabled = false },
   },
 }

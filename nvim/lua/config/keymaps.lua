@@ -4,48 +4,6 @@ vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
--- Resize submode: press `r` then h/j/k/l/z repeatedly. Any other key exits.
-vim.keymap.set("n", "r", function()
-  local zoomed = false
-  local saved_layout = nil
-
-  while true do
-    vim.cmd("redraw")
-    vim.api.nvim_echo({ { "-- RESIZE -- (h/j/k/l to resize, z to toggle zoom, any other key to exit)", "ModeMsg" } }, false, {})
-
-    local ok, char = pcall(vim.fn.getcharstr)
-    if not ok or char == "" or char == "\27" then break end -- Esc or interrupt
-
-    if char == "h" then
-      vim.cmd("vertical resize -2")
-    elseif char == "l" then
-      vim.cmd("vertical resize +2")
-    elseif char == "j" then
-      vim.cmd("resize +2")
-    elseif char == "k" then
-      vim.cmd("resize -2")
-    elseif char == "z" then
-      if zoomed then
-        if saved_layout then
-          vim.fn.winrestcmd()
-          vim.cmd(saved_layout)
-        end
-        zoomed = false
-      else
-        saved_layout = vim.fn.winrestcmd()
-        vim.cmd("wincmd _ | wincmd |") -- max height + max width
-        zoomed = true
-      end
-    else
-      -- feed unhandled key back so it behaves normally
-      vim.api.nvim_feedkeys(char, "n", false)
-      break
-    end
-  end
-
-  vim.api.nvim_echo({ { "" } }, false, {})
-end, { desc = "Window resize submode" })
-
 -- clear highlights on search when pressing <esc> in normal mode
 vim.keymap.set('n', '<esc>', '<cmd>nohlsearch<cr>')
 
