@@ -53,3 +53,20 @@ bin/.local/scripts/private/
 
 # herdr plugin download cache
 herdr/plugins/github/
+
+# herdr GUI app: track only personal config, not runtime/shipped files
+herdr-app/*
+!herdr-app/settings.json
+!herdr-app/keys.json
+!herdr-app/themes/
+herdr-app/themes/*
+!herdr-app/themes/tokyo-night.json
+!herdr-app/layouts/
+herdr-app/layouts/*
+!herdr-app/layouts/my-main.json
+!herdr-app/mods/
+herdr-app/mods/*
+!herdr-app/mods/my-spaces/
+!herdr-app/mods/my-agents/
+herdr-app/mods/my-*/*.d.ts
+herdr-app/mods/my-*/jsconfig.json
