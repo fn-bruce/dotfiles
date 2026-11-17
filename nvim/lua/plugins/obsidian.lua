@@ -53,6 +53,5 @@ return {
       },
     },
     daily_notes = { folder = 'zettel/daily', template = 'daily' },
-    frontmatter = { enabled = false },
   },
 }
