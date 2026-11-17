@@ -69,7 +69,8 @@
     "ctrl-a h": "pane.go:left",
     "ctrl-a j": "pane.go:down",
     "ctrl-a k": "pane.go:up",
-    "ctrl-a l": "pane.go:right"
+    "ctrl-a l": "pane.go:right",
+    "ctrl-a z": "pane.zoom"
   },
   "terminal": {
     "cmd-f": "terminal.search",
