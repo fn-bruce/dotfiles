@@ -61,8 +61,8 @@
     "ctrl-a ,": "tab.rename",
     "ctrl-a $": "space.rename",
     "ctrl-a s": "mod.open:picker",
-    "ctrl-a n": "agent.next",
-    "ctrl-a p": "agent.prev",
+    "ctrl-a n": "tab.next",
+    "ctrl-a p": "tab.prev",
     "ctrl-a b": "layout.toggle:sidebar",
     "ctrl-a w": "my-spaces.focus",
     "ctrl-a a": "my-agents.focus",
@@ -70,7 +70,12 @@
     "ctrl-a j": "pane.go:down",
     "ctrl-a k": "pane.go:up",
     "ctrl-a l": "pane.go:right",
-    "ctrl-a z": "pane.zoom"
+    "ctrl-a |": "pane.split:right",
+    "ctrl-a z": "pane.zoom",
+    "ctrl-a -": "pane.split:down",
+    "ctrl-a x": "workspace-status.close-pane",
+    "ctrl-a c": "tab.new",
+    "ctrl-a shift-c": "space.new"
   },
   "terminal": {
     "cmd-f": "terminal.search",

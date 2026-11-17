@@ -58,6 +58,8 @@ herdr/plugins/github/
 herdr-app/*
 !herdr-app/settings.json
 !herdr-app/keys.json
+!herdr-app/keys.windows.json
+!herdr-app/link-windows.ps1
 !herdr-app/themes/
 herdr-app/themes/*
 !herdr-app/themes/tokyo-night.json
