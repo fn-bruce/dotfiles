@@ -95,75 +95,62 @@ outer.right =      10
 # alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
 # alt-p = 'exec-and-forget open -n /Applications/1Password.app/'
 
-# Hyper = cmd-alt-ctrl-shift. Hyper-comma/period are reserved by macOS (sysdiagnose).
+# See: https://nikitabobko.github.io/AeroSpace/commands#layout
+alt-period = 'layout tiles horizontal vertical'
+alt-comma = 'layout accordion horizontal vertical'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#focus
-cmd-alt-ctrl-shift-h = 'focus left'
-cmd-alt-ctrl-shift-j = 'focus down'
-cmd-alt-ctrl-shift-k = 'focus up'
-cmd-alt-ctrl-shift-l = 'focus right'
+alt-h = 'focus left'
+alt-j = 'focus down'
+alt-k = 'focus up'
+alt-l = 'focus right'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#move
+alt-shift-h = 'move left'
+alt-shift-j = 'move down'
+alt-shift-k = 'move up'
+alt-shift-l = 'move right'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#resize
+alt-shift-minus = 'resize smart -50'
+alt-shift-equal = 'resize smart +50'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-cmd-alt-ctrl-shift-1 = 'workspace 1'
-cmd-alt-ctrl-shift-2 = 'workspace 2'
-cmd-alt-ctrl-shift-3 = 'workspace 3'
-cmd-alt-ctrl-shift-4 = 'workspace 4'
-cmd-alt-ctrl-shift-5 = 'workspace 5'
-cmd-alt-ctrl-shift-6 = 'workspace 6'
-cmd-alt-ctrl-shift-7 = 'workspace 7'
-cmd-alt-ctrl-shift-8 = 'workspace 8'
-cmd-alt-ctrl-shift-9 = 'workspace 9'
-cmd-alt-ctrl-shift-0 = 'workspace 10'
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+alt-0 = 'workspace 10'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
+alt-shift-1 = 'move-node-to-workspace 1'
+alt-shift-2 = 'move-node-to-workspace 2'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-8 = 'move-node-to-workspace 8'
+alt-shift-9 = 'move-node-to-workspace 9'
+alt-shift-0 = 'move-node-to-workspace 10'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-cmd-alt-ctrl-shift-tab = 'workspace-back-and-forth'
+alt-tab = 'workspace-back-and-forth'
 
-cmd-alt-ctrl-shift-q = 'close'
-cmd-alt-ctrl-shift-f = 'fullscreen'
+# See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
+alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
-# Layers. See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
-cmd-alt-ctrl-shift-m = 'mode move'
-cmd-alt-ctrl-shift-r = 'mode resize'
-cmd-alt-ctrl-shift-space = 'mode layout'
-cmd-alt-ctrl-shift-semicolon = 'mode service'
+alt-q = 'close'
+alt-f = 'fullscreen'
+alt-shift-f = 'layout floating tiling'
 
-# Move layer: one-shot, returns to main after each action.
-[mode.move.binding]
-esc = 'mode main'
-h = ['move left', 'mode main']
-j = ['move down', 'mode main']
-k = ['move up', 'mode main']
-l = ['move right', 'mode main']
-1 = ['move-node-to-workspace --focus-follows-window 1', 'mode main']
-2 = ['move-node-to-workspace --focus-follows-window 2', 'mode main']
-3 = ['move-node-to-workspace --focus-follows-window 3', 'mode main']
-4 = ['move-node-to-workspace --focus-follows-window 4', 'mode main']
-5 = ['move-node-to-workspace --focus-follows-window 5', 'mode main']
-6 = ['move-node-to-workspace --focus-follows-window 6', 'mode main']
-7 = ['move-node-to-workspace --focus-follows-window 7', 'mode main']
-8 = ['move-node-to-workspace --focus-follows-window 8', 'mode main']
-9 = ['move-node-to-workspace --focus-follows-window 9', 'mode main']
-0 = ['move-node-to-workspace --focus-follows-window 10', 'mode main']
-tab = ['move-workspace-to-monitor --wrap-around next', 'mode main']
-
-# Resize layer: sticky, press esc or enter to leave.
-[mode.resize.binding]
-esc = 'mode main'
-enter = 'mode main'
-h = 'resize width -50'
-l = 'resize width +50'
-j = 'resize height +50'
-k = 'resize height -50'
-minus = 'resize smart -50'
-equal = 'resize smart +50'
-b = ['balance-sizes', 'mode main']
-
-# Layout layer: one-shot.
-[mode.layout.binding]
-esc = 'mode main'
-t = ['layout tiles horizontal vertical', 'mode main']
-a = ['layout accordion horizontal vertical', 'mode main']
-f = ['layout floating tiling', 'mode main']
+# See: https://nikitabobko.github.io/AeroSpace/commands#mode
+alt-shift-semicolon = 'mode service'
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -174,7 +161,7 @@ r = ['flatten-workspace-tree', 'mode main'] # reset layout
 f = ['layout floating tiling', 'mode main'] # Toggle between floating and tiling layout
 backspace = ['close-all-windows-but-current', 'mode main']
 
-h = ['join-with left', 'mode main']
-j = ['join-with down', 'mode main']
-k = ['join-with up', 'mode main']
-l = ['join-with right', 'mode main']
+alt-shift-h = ['join-with left', 'mode main']
+alt-shift-j = ['join-with down', 'mode main']
+alt-shift-k = ['join-with up', 'mode main']
+alt-shift-l = ['join-with right', 'mode main']
