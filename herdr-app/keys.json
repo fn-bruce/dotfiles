@@ -73,7 +73,7 @@
     "ctrl-a |": "pane.split:right",
     "ctrl-a z": "pane.zoom",
     "ctrl-a -": "pane.split:down",
-    "ctrl-a x": "workspace-status.close-pane",
+    "ctrl-a x": "my-status.close-pane",
     "ctrl-a c": "tab.new",
     "ctrl-a shift-c": "space.new"
   },

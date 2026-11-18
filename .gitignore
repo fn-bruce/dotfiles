@@ -74,5 +74,7 @@ herdr-app/mods/*
 !herdr-app/mods/my-reader/
 !herdr-app/mods/my-answer/
 !herdr-app/mods/my-brain/
+!herdr-app/mods/my-status/
+!herdr-app/mods/my-confirm/
 herdr-app/mods/my-*/*.d.ts
 herdr-app/mods/my-*/jsconfig.json

@@ -2,9 +2,7 @@
   "zoom": 1.0,
   "theme": "tokyo-night",
   "sounds": {
-    "enabled": true,
-    "done": "../herdr/sounds/caught-pokemon.mp3",
-    "blocked": "../herdr/sounds/caught-pokemon.mp3"
+    "enabled": true
   },
   "font_ligatures": false,
   "terminal_line_height": 1.0,
