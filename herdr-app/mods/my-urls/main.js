@@ -1,10 +1,11 @@
-// URL picker: ctrl-a u (mod.open:my-urls) lists every http(s) URL in the focused terminal
-// pane, newest first, fuzzy filtered, and opens the pick in the default browser.
+// URL picker: ctrl-a u (mod.open:my-urls) lists every http(s) URL on the focused terminal
+// pane's screen, newest first, fuzzy filtered, and opens the pick in the default browser.
 //
-// The text comes from herdr-core: `hc read <terminal> --lines 500` (history above the
-// screen, then the screen); mods have no direct read of a terminal's text. Repeats collapse
-// with a count; each row says how many lines up its newest mention sits. Nothing is written
-// anywhere, so there is no y/n row.
+// The text comes from herdr-core: `hc read <terminal> --lines 0` (the visible screen only,
+// like tmux-urlview's capture-pane); mods have no direct read of a terminal's text. History
+// is skipped on purpose: the first history read of an agent pane takes ~4 s while the core
+// stitches it, the screen ~20 ms. Repeats collapse with a count; each row says how many
+// lines up its newest mention sits. Nothing is written anywhere, so there is no y/n row.
 //
 // Keys: the filter input owns plain letters, so actions ride ctrl:
 //   ↑/↓ or ctrl-j/ctrl-k move   enter open   ctrl-y copy   esc close
@@ -14,7 +15,6 @@ import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import { hc, theme, settings, props, closeOverlay, focused, panes, checking, nextCommand } from "herdr";
 
-const HISTORY = 500;
 const ROW = 34;
 const LIST_MAX = 360;
 const SHOW_MAX = 78;
@@ -86,8 +86,6 @@ export default class MyUrls extends View {
     this.urls = [];
     this.state = "loading"; // loading | ready | mod | none | error
     this.error = null;
-    this.screenOnly = false;
-    this.history = "none"; // none | loading | done | failed
 
     const f = focused();
     const ps = panes();
@@ -123,39 +121,23 @@ export default class MyUrls extends View {
     cx.spawn(async (cx) => { await this.load(); cx.notify(); });
   }
 
-  // Two phases: the screen alone reads in ~50 ms, while the first history read after a pane
-  // comes on screen takes ~4 s in herdr-core. So the screen's URLs show at once and the
-  // history's fill in behind them (the screen is the newest part, so the order holds).
   async load() {
-    const cx = this.acx;
     try {
-      const screen = await this.read(0);
-      this.urls = extract(screen.text);
+      this.urls = extract(await this.read());
       this.state = "ready";
-      this.history = "loading";
-      cx.notify();
-      const full = await this.read(HISTORY);
-      // "screen": the core keeps no history for this terminal (Claude Code clears its own).
-      this.screenOnly = full.how === "screen";
-      const keep = this.rows()[this.at]?.url;
-      this.urls = extract(full.text);
-      if (keep) { const i = this.rows().findIndex((r) => r.url === keep); if (i >= 0) this.at = i; }
-      this.history = "done";
     } catch (e) {
-      if (this.state === "ready") { this.history = "failed"; return; }
       this.error = String(e?.message ?? e);
       this.state = "error";
     }
   }
 
-  async read(lines) {
-    const r = await hc(["read", this.terminal, "--lines", String(lines), "--json"]);
+  async read() {
+    const r = await hc(["read", this.terminal, "--lines", "0", "--json"]);
     if (r.code !== 0) throw new Error(lastLine(r.stderr) || `hc read exited ${r.code}`);
     try {
-      const j = JSON.parse(r.stdout);
-      return { text: j.text ?? "", how: j.how ?? null };
+      return JSON.parse(r.stdout).text ?? "";
     } catch {
-      return { text: r.stdout, how: null };
+      return r.stdout;
     }
   }
 
@@ -264,16 +246,8 @@ export default class MyUrls extends View {
     else if (this.state === "mod") body = note(`The focused pane is ${this.paneMod}, not a terminal`, notTerminal);
     else if (this.state === "none") body = note("No terminal pane is focused", notTerminal);
     else if (this.state === "error") body = note("Couldn't read the pane", this.error, t.blocked);
-    else if (this.urls.length === 0 && this.history === "loading") body = note("No URLs on screen", "Reading the history above it…");
     else if (this.urls.length === 0)
-      body = note(
-        this.screenOnly || this.history === "failed" ? "No URLs on screen" : "No URLs in this pane",
-        this.screenOnly
-          ? `${this.paneTitle} keeps no history, so only the screen was read. Nothing on it starts with http:// or https://.`
-          : this.history === "failed"
-            ? "The history could not be read. Nothing on the screen starts with http:// or https://."
-            : `Looked through the last ${HISTORY} lines of ${this.paneTitle}. Nothing there starts with http:// or https://.`,
-      );
+      body = note("No URLs on screen", `Nothing on ${this.paneTitle}'s screen starts with http:// or https://.`);
     else if (rows.length === 0) body = note("Nothing matches the filter");
     else
       body = v_flex()
@@ -294,9 +268,7 @@ export default class MyUrls extends View {
     if (this.state === "ready") {
       const n = this.urls.length;
       if (rows.length !== n) countLabel = `${rows.length} of ${n}`;
-      else if (this.history === "loading") countLabel = `${n} on screen · reading history…`;
-      else if (this.history === "failed") countLabel = `${n} on screen · history unavailable`;
-      else countLabel = `${n} ${this.screenOnly ? "on screen" : "in this pane"}${n ? " · newest first" : ""}`;
+      else countLabel = `${n} on screen${n ? " · newest first" : ""}`;
     }
 
     return v_flex()
