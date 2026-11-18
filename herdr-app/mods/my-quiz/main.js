@@ -3,7 +3,10 @@
 // Open:  herdr-app do pane.split --direction right --mod my-quiz \
 //          --props '{"file":"/abs/path/quiz.json","reply":"t6"}'
 // file:  { "title": "...", "questions": [ { "id": "q1", "prompt": "markdown",
-//          "passage"?: "quoted text", "choices"?: ["a", "b"] } ] }
+//          "passage"?: "quoted text", "choices"?: ["a", {"text": "b", "gap": "…"}] } ] }
+//        A choice is a string or { text, gap }: `gap` names the misconception that distractor
+//        tests (a Terminology gaps row or Open question). It is never shown; picking it adds
+//        "Gap: …" to the answer so the miss lands on that gap, not just the topic.
 // reply: terminal address that receives each answer (via `hc send`).
 // The file is watched: rewrite it to push new questions; the pane resets to question 1.
 import { View, div } from "gpui-kit";
@@ -11,6 +14,8 @@ import { v_flex, h_flex, InputState, Input, TextView } from "gpui-base";
 import { props, theme, readTextFile, watchFolder, exec, checking, nextCommand } from "herdr";
 
 const dirOf = (p) => p.replace(/\/[^/]*$/, "") || "/";
+const choiceText = (c) => (typeof c === "string" ? c : c?.text ?? "");
+const choiceGap = (c) => (typeof c === "string" ? null : c?.gap ?? null);
 
 export default class Quiz extends View {
   init(_props, cx) {
@@ -90,7 +95,11 @@ export default class Quiz extends View {
     if (!q.choices && !text) return;
     const n = this.quiz.questions.length;
     const lines = [`[quiz] ${this.quiz.title ?? "Quiz"} — ${q.id ?? `q${this.index + 1}`} (${this.index + 1}/${n})`];
-    if (q.choices) lines.push(`Choice: ${String.fromCharCode(65 + this.choice)}. ${q.choices[this.choice]}`);
+    if (q.choices) {
+      const c = q.choices[this.choice];
+      lines.push(`Choice: ${String.fromCharCode(65 + this.choice)}. ${choiceText(c)}`);
+      if (choiceGap(c)) lines.push(`Gap: ${choiceGap(c)}`);
+    }
     if (text) lines.push(q.choices ? `Why: ${text}` : text);
     const msg = lines.join("\n");
     this.sending = true;
@@ -168,7 +177,7 @@ export default class Quiz extends View {
           .bg(this.choice === i ? t.selected : t.surface).hover((s) => s.bg(t.hover))
           .on_click((_e, cx) => { this.choice = i; this.handle.focus(); cx.notify(); })
           .child(div().text_color(t.dim).child(String.fromCharCode(65 + i)))
-          .child(div().flex_1().child(c))))))
+          .child(div().flex_1().child(choiceText(c)))))))
       .when(Array.isArray(q.choices), (el) => el.child(div().text_size(11.5).text_color(t.dim)
         .child(this.whyFocused ? "Why? (optional) · Enter send · Esc back to choices"
           : "A–Z / 1–9 pick · Enter send · Tab add a why")))

@@ -77,5 +77,6 @@ herdr-app/mods/*
 !herdr-app/mods/my-status/
 !herdr-app/mods/my-confirm/
 !herdr-app/mods/my-urls/
+!herdr-app/mods/my-brain-chat/
 herdr-app/mods/my-*/*.d.ts
 herdr-app/mods/my-*/jsconfig.json

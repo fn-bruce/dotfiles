@@ -4,7 +4,11 @@
 // Open:  herdr-app do pane.split --direction right --mod my-answer \
 //          --props '{"file":"/abs/path/answer.json","reply":"t6"}'
 // file:  { "title": "...", "prompt": "markdown", "passage"?: "quoted text",
-//          "mode"?: "xyz" | "free" }      (default "xyz")
+//          "mode"?: "xyz" | "free",       (default "xyz")
+//          "result"?: { "grade": "Pass" | "Partial" | "Fail", "note"?: "markdown",
+//                       "next_recall"?: "YYYY-MM-DD" } }
+//        After grading, Claude rewrites the file with `result` added: the pane shows the
+//        grade instead of clearing the boxes.
 // reply: terminal address that receives the answer (via `hc send`).
 // The file is watched: rewrite it to ask the next question; the boxes clear.
 //
@@ -106,8 +110,12 @@ export default class Answer extends View {
       if (!t.prompt) throw new Error("no prompt");
       this.task = t;
       this.error = null;
-      this.sent = false;
-      for (const [k, s] of Object.entries(this.boxes)) { s.set_value(""); this.prev[k] = ""; }
+      if (t.result) {
+        this.sent = true;
+      } else {
+        this.sent = false;
+        for (const [k, s] of Object.entries(this.boxes)) { s.set_value(""); this.prev[k] = ""; }
+      }
       this.focusStart();
     } catch (e) {
       this.error = `Bad answer file: ${e.message}`;
@@ -175,6 +183,18 @@ export default class Answer extends View {
     if (!this.task) return root.child(div().text_color(t.muted).child(this.error ?? "Loading…"));
 
     const header = div().text_size(15).font_semibold().child(this.task.title ?? "Answer");
+    const r = this.task.result;
+    if (this.sent && r) {
+      const color = r.grade === "Pass" ? t.done : r.grade === "Fail" ? t.blocked : t.working;
+      return root.child(header)
+        .child(h_flex().gap(10).items_center()
+          .child(div().px(10).py(3).rounded(6).border_1().border_color(color).text_color(color)
+            .font_semibold().child(r.grade ?? "Graded"))
+          .when(Boolean(r.next_recall), (el) => el.child(div().text_size(12).text_color(t.dim)
+            .child(`next recall ${r.next_recall}`))))
+        .when(Boolean(r.note), (el) => el.child(TextView.markdown("result-note", r.note)))
+        .child(div().text_size(11.5).text_color(t.dim).child("The next question appears here."));
+    }
     if (this.sent) {
       return root.child(header).child(div().text_color(t.muted)
         .child("Sent. Waiting for Claude — the next question appears here."));

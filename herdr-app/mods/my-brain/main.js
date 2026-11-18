@@ -6,9 +6,22 @@
 // (oldest first; shows only what Bruce said, never the precise term: that's the warm-up's
 // answer), the top of the learning queue, and every topic with its level.
 // Refreshes when anything under wiki/ changes, and hourly for the date.
+//
+// Capture (bottom):
+//   TIL box  appends Bruce's text verbatim to raw-sources/til/YYYY-MM-DD.md under a
+//            "## HH:MM" heading. No AI touches it; the main Claude session ingests it later.
+//   Ask box  runs a read-only `claude -p` query against the wiki and shows the answer here.
+//            It never writes: the main session stays the only writer of wiki/.
 import { View, div } from "gpui-kit";
-import { v_flex, h_flex } from "gpui-base";
-import { props, theme, readTextFile, watchFolder, checking, nextCommand } from "herdr";
+import { v_flex, h_flex, InputState, Input, TextView } from "gpui-base";
+import { props, theme, readTextFile, writeTextFile, watchFolder, checking, nextCommand, exec } from "herdr";
+
+const ASK_PROMPT = [
+  "One-shot Query from the Herdr brain pane. Skip the session-start status line.",
+  "Answer from the wiki only (read wiki/index.md first), with [[links]].",
+  "Say plainly when the wiki doesn't cover it. Do not explain the concept yourself.",
+  "Read-only: never create or edit files. Terse.",
+].join(" ");
 import * as fs from "fs/promises";
 
 const LEVELS = ["heard-of", "read-about", "can-explain", "applied", "can-teach"];
@@ -20,6 +33,11 @@ const today = () => {
 };
 const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
 const plain = (s) => s.replace(/\[\[([^\]|]+)(\|[^\]]+)?\]\]/g, "$1").replace(/\*\*/g, "").trim();
+
+// GUI apps don't inherit the shell PATH (nvm etc.), so find claude first.
+const FIND_CLAUDE = `PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH"
+command -v claude >/dev/null 2>&1 || for d in $(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -rV); do [ -x "$d/claude" ] && PATH="$d:$PATH" && break; done
+`;
 
 function frontmatter(raw) {
   const m = raw.match(/^---\n([\s\S]*?)\n---/);
@@ -51,6 +69,13 @@ export default class Brain extends View {
     this.data = null;
     this.error = null;
     this.vault = props()?.vault;
+    this.status = null;   // capture feedback line
+    this.asking = false;
+    this.answer = null;   // { q, text }
+    this.til = InputState.new({ placeholder: "TIL… (Enter saves verbatim)" });
+    this.til.on("submit", (_e, cx) => this.saveTil(cx));
+    this.ask = InputState.new({ placeholder: "Ask the wiki… (Enter)" });
+    this.ask.on("submit", (_e, cx) => this.askWiki(cx));
     if (!this.vault) { this.error = "No `vault` prop."; return; }
     if (checking()) return;
     cx.spawn(async (cx) => {
@@ -66,6 +91,49 @@ export default class Brain extends View {
         const c = await nextCommand();
         if (c === "focus") { this.handle.focus(); cx.notify(); }
       }
+    });
+  }
+
+  saveTil(cx) {
+    const text = this.til.value().trim();
+    if (!text) return;
+    const now = new Date();
+    const p = (n) => String(n).padStart(2, "0");
+    const file = `${this.vault}/raw-sources/til/${today()}.md`;
+    const entry = `## ${p(now.getHours())}:${p(now.getMinutes())}\n${text}\n`;
+    cx.spawn(async (cx) => {
+      try {
+        const old = await readTextFile(file);
+        const next = old == null ? `# TIL ${today()}\n\n${entry}` : `${old.replace(/\n*$/, "\n\n")}${entry}`;
+        await writeTextFile(file, next, old);
+        this.til.set_value("");
+        this.status = `Saved to til/${today()}.md — ingest next session.`;
+      } catch (e) {
+        this.status = `TIL not saved: ${e.message ?? e}`;
+      }
+      cx.notify();
+    });
+  }
+
+  askWiki(cx) {
+    const q = this.ask.value().trim();
+    if (!q || this.asking) return;
+    this.asking = true;
+    this.answer = { q, text: null };
+    this.status = null;
+    cx.notify();
+    cx.spawn(async (cx) => {
+      try {
+        const r = await exec("sh", ["-c", FIND_CLAUDE + 'exec claude "$@"', "sh", "-p", q, "--append-system-prompt", ASK_PROMPT,
+          "--allowedTools", "Read", "Grep", "Glob"], { cwd: this.vault, timeout: 300000 });
+        const out = (r?.stdout ?? String(r ?? "")).trim();
+        this.answer = { q, text: out || (r?.stderr ?? "").trim() || "(no answer)" };
+        this.ask.set_value("");
+      } catch (e) {
+        this.answer = { q, text: `Ask failed: ${e.message ?? e}` };
+      }
+      this.asking = false;
+      cx.notify();
     });
   }
 
@@ -95,6 +163,26 @@ export default class Brain extends View {
       this.error = `Couldn't read the wiki: ${e.message ?? e}`;
     }
     cx.notify();
+  }
+
+  capture(t) {
+    const box = (state) => Input.new(state).w_full().h(32).px(10).rounded(8).border_1()
+      .border_color(t.input).bg(t.surface).text_size(13).text_color(t.foreground);
+    const a = this.answer;
+    return v_flex().gap(7).pt(4).border_t_1().border_color(t.border)
+      .child(div().pt(10).text_size(11).font_semibold().text_color(t.dim).child("CAPTURE"))
+      .child(box(this.til))
+      .child(box(this.ask))
+      .when(Boolean(this.status), (el) => el.child(div().text_size(11.5).text_color(t.dim).child(this.status)))
+      .when(Boolean(a), (el) => el.child(v_flex().gap(6).p(10).rounded(8).bg(t.surface)
+        .child(h_flex().gap(8).items_center()
+          .child(div().flex_1().text_size(11.5).text_color(t.dim).truncate().child(`Q: ${a.q}`))
+          .child(div().id("ask-close").text_size(11.5).text_color(t.dim).cursor_pointer()
+            .hover((s) => s.text_color(t.foreground))
+            .on_click((_e, cx) => { this.answer = null; cx.notify(); }).child("✕")))
+        .child(a.text == null
+          ? div().text_color(t.muted).child("Asking the wiki…")
+          : TextView.markdown("ask-answer", a.text).selectable(true))));
   }
 
   render() {
@@ -156,6 +244,7 @@ export default class Brain extends View {
       .child(section("Terminology gaps", gaps.length, gapList))
       .child(section("Up next", null, queueBox))
       .child(section("Topics", topics.length, topicList))
+      .child(this.capture(t))
       .when(Boolean(this.error), (el) => el.child(div().text_color(t.blocked).text_size(12).child(this.error)));
   }
 }

@@ -151,6 +151,22 @@
               "min": 280,
               "max": 900,
               "hidden": true
+            },
+            {
+              "id": "brain-dock",
+              "type": "block",
+              "content": {
+                "mod": "my-brain",
+                "props": {
+                  "vault": "/Users/brucen/Notes/bruce-brain"
+                }
+              },
+              "size": {
+                "px": 340
+              },
+              "min": 260,
+              "max": 600,
+              "hidden": true
             }
           ],
           "padding": 8,

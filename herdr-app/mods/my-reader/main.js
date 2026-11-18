@@ -1,11 +1,15 @@
 // Article reader pane: renders a markdown file (with optional YAML frontmatter) as a
 // readable column, scrolled with vim keys.
 //
-// Open:  herdr-app do pane.split --direction right --mod my-reader --props '{"file":"/abs/article.md"}'
+// Open:  herdr-app do pane.split --direction right --mod my-reader \
+//          --props '{"file":"/abs/article.md","reply":"t6"}'
+// reply: optional terminal address for "?" (via `hc send`).
 //
 // Keys:  j k        line down / up          d u / space        half page (ctrl- too)
 //        f b        full page (ctrl- too)    gg G               top / bottom
 //        + -        font size               o   open the source URL  q   close the pane
+//        ?          send the copied passage to Claude as "[confused]": select text with
+//                   the mouse, Cmd+C, then ?
 //
 // Mod scroll areas can't be moved by pixels from code, so the content sits in a clipped
 // frame and is shifted with `top(-y)`; its measured height bounds y.
@@ -98,9 +102,32 @@ export default class Reader extends View {
     else if (ch === "+" || k === "=" || k === "shift-=") this.setFont(this.font + 1, cx);
     else if (ch === "-" || k === "-") this.setFont(this.font - 1, cx);
     else if (k === "o" && this.doc?.meta.url) exec("open", [this.doc.meta.url]);
+    else if (ch === "?" || k === "shift-/") this.confused(cx);
     else if (k === "q") { const pane = focused()?.pane; if (pane) run("pane.close", { pane }); }
     else return;
     cx.stop_propagation();
+  }
+
+  confused(cx) {
+    const reply = props()?.reply;
+    const quote = (cx.read_from_clipboard() ?? "").trim();
+    if (!reply) { this.flash = "No reply terminal: ? is off."; cx.notify(); return; }
+    if (!quote) { this.flash = "Select a passage, Cmd+C, then ?"; cx.notify(); return; }
+    const title = this.doc?.meta.title ?? "Reading";
+    const pct = this.maxY() > 0 ? Math.round((this.y / this.maxY()) * 100) : 100;
+    const msg = [`[confused] ${title} (${pct}%)`, ...quote.split("\n").map((l) => `> ${l}`)].join("\n");
+    this.flash = "Sending…";
+    cx.notify();
+    cx.spawn(async (cx) => {
+      try {
+        await exec("hc", ["send", reply, msg], { timeout: 600000 });
+        this.flash = "Sent to Claude.";
+      } catch (e) {
+        this.flash = `Send failed: ${e.message ?? e}`;
+      }
+      cx.notify();
+      cx.timer.after(3000, (cx) => { this.flash = null; cx.notify(); });
+    });
   }
 
   setFont(size, cx) {
@@ -126,7 +153,7 @@ export default class Reader extends View {
       .when(Boolean(meta.title), (el) => el.child(
         div().text_size(this.font + 12).font_semibold().pb(4).child(meta.title)))
       .when(Boolean(byline), (el) => el.child(div().text_size(this.font - 3).text_color(t.dim).pb(18).child(byline)))
-      .child(TextView.markdown("article", body));
+      .child(TextView.markdown("article", body).selectable(true));
 
     // Scrollbar: thumb length = share of the article on screen, position = progress.
     const track = Math.max(0, this.viewH - 16);
@@ -142,6 +169,6 @@ export default class Reader extends View {
         .child(div().absolute().right(4).top(8).w(4).h(track).rounded(2).bg(t.surface))
         .child(div().absolute().right(4).top(8 + thumbTop).w(4).h(thumbH).rounded(2).bg(t.dim)))
       .child(div().absolute().right(16).bottom(8).px(8).py(2).rounded(5).bg(t.surface)
-        .text_size(11).text_color(t.dim).child(`${pct}%  ·  j/k  d/u  f/b  gg/G  q`));
+        .text_size(11).text_color(t.dim).child(this.flash ?? `${pct}%  ·  j/k  d/u  f/b  gg/G  ?  q`));
   }
 }

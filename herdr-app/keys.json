@@ -67,6 +67,8 @@
     "ctrl-a w": "my-spaces.focus",
     "ctrl-a a": "my-agents.focus",
     "ctrl-a u": "mod.open:my-urls",
+    "ctrl-a i": "layout.toggle:brain-dock",
+    "ctrl-a shift-b": {"command": "tab.new", "args": {"name": "Brain", "mod": "my-brain-chat", "props": {"vault": "/Users/brucen/Notes/bruce-brain"}}},
     "ctrl-a h": "pane.go:left",
     "ctrl-a j": "pane.go:down",
     "ctrl-a k": "pane.go:up",
