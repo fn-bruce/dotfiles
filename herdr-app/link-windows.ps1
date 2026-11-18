@@ -29,6 +29,11 @@ $links = [ordered]@{
   "mods\my-confirm"          = "mods\my-confirm"
   "mods\my-tickets"          = "mods\my-tickets"
   "mods\my-urls"             = "mods\my-urls"
+  "mods\my-drafts"           = "mods\my-drafts"
+  "mods\my-prs"              = "mods\my-prs"
+  "mods\my-brain-chat"       = "mods\my-brain-chat"
+  "mods\my-help"             = "mods\my-help"
+  "mods\my-leader"           = "mods\my-leader"
 }
 
 $script:copied = @()

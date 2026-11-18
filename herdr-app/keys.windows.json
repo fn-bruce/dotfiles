@@ -65,6 +65,8 @@
     "w": "my-spaces.focus",
     "a": "my-agents.focus",
     "t": {"command": "pane.split", "args": {"direction": "right", "mod": "my-tickets"}},
+    "g": {"command": "pane.split", "args": {"direction": "right", "mod": "my-prs"}},
+    "d": {"command": "pane.split", "args": {"direction": "right", "mod": "my-drafts"}},
     "u": "mod.open:my-urls",
     "h": "pane.go:left",
     "j": "pane.go:down",
