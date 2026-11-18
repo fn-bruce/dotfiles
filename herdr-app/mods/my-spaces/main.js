@@ -104,14 +104,17 @@ export default class Spaces extends View {
         if (c === "focus") {
           this.cursor = spaces().find((s) => s.active)?.id ?? spaces()[0]?.id ?? null;
           this.handle.focus();
+          setShared("sidebar", "my-spaces");
         }
         cx.notify();
       }
     });
     // No blur event: drop the cursor once something else has the keyboard.
     this.prev = focused()?.pane ?? null; // the terminal pane to return to on Escape
+    // Shared "sidebar" names the sidebar mod holding the keyboard (see my-agents).
     cx.timer.every(300, (cx) => {
-      if (this.handle.is_focused()) return;
+      if (this.handle.is_focused()) { if (shared("sidebar") !== "my-spaces") setShared("sidebar", "my-spaces"); return; }
+      if (shared("sidebar") === "my-spaces" && shared("leader") !== true) setShared("sidebar", false);
       const p = focused()?.pane;
       if (p) this.prev = p;
       if (this.cursor || this.confirm || this.moving) { this.cursor = null; this.confirm = null; this.endMove(); cx.notify(); }
@@ -319,6 +322,7 @@ export default class Spaces extends View {
   // takes the keyboard back.
   back(cx) {
     this.cursor = null;
+    setShared("sidebar", false);
     const term = panes().find((x) => x.pane === this.prev)?.terminal ?? focused()?.terminal;
     if (term) run("pane.focus", { terminal: term });
   }

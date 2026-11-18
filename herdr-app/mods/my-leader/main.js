@@ -13,7 +13,7 @@
 // From the CLI: herdr-app do my-leader.key-x (key-shift-c, key-ctrl-a, key-escape, ...)
 
 import { View, div } from "gpui-kit";
-import { keys, commands, run, props, closeOverlay, focused, hc, notify, checking, nextCommand, setShared } from "herdr";
+import { keys, commands, run, props, closeOverlay, focused, hc, notify, checking, nextCommand, shared, setShared } from "herdr";
 
 const SECTION = "mod:leader";
 const OPENER = "mod.open:my-leader";
@@ -52,6 +52,9 @@ function sendKeys(text) {
 export default class MyLeader extends View {
   init(_props, cx) {
     this.done = false;
+    // The sidebar mod (my-agents, my-spaces) that had the keyboard when the chord was pressed,
+    // read now because this popup takes the keyboard from it.
+    this.sidebar = shared("sidebar") || null;
     this.handle = cx.focus_handle();
     this.handle.focus();
     if (checking()) return;
@@ -109,7 +112,19 @@ export default class MyLeader extends View {
     return true;
   }
 
+  // pane.go:right while a sidebar holds the keyboard: the app still counts the last terminal
+  // pane as focused, so pane.go would start there and skip it. Hand the keyboard back to that
+  // pane the way the sidebar's own l/Escape does.
+  sidebarBack(a) {
+    if (!this.sidebar) return false;
+    const dir = typeof a === "string" ? (a === "pane.go:right" ? "right" : null) : a.command === "pane.go" ? a.args?.direction : null;
+    if (dir !== "right") return false;
+    run(`${this.sidebar}.back`);
+    return true;
+  }
+
   exec(a, cx) {
+    if (this.sidebarBack(a)) return;
     if (typeof a === "object") return run(a.command, a.args ?? {});
     if (a.startsWith("send:")) {
       const f = focused();

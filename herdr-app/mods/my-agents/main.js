@@ -104,14 +104,19 @@ export default class Agents extends View {
           const shown = focused()?.agent;
           this.cursor = this.order.includes(shown) ? shown : this.order[0] ?? null;
           this.handle.focus();
+          setShared("sidebar", "my-agents");
         }
         cx.notify();
       }
     });
     // No blur event: drop the cursor once something else has the keyboard.
     this.prev = focused()?.pane ?? null; // the terminal pane to return to on Escape
+    // Shared "sidebar" names the sidebar mod holding the keyboard, so my-leader can hand it
+    // back to the terminal on l: the leader popup takes the keyboard itself, so the app's
+    // pane.go:right would start from the terminal and skip it. Kept while the leader is open.
     cx.timer.every(300, (cx) => {
-      if (this.handle.is_focused()) return;
+      if (this.handle.is_focused()) { if (shared("sidebar") !== "my-agents") setShared("sidebar", "my-agents"); return; }
+      if (shared("sidebar") === "my-agents" && shared("leader") !== true) setShared("sidebar", false);
       const p = focused()?.pane;
       if (p) this.prev = p;
       if (this.cursor || this.confirm) { this.cursor = null; this.confirm = null; cx.notify(); }
@@ -124,6 +129,7 @@ export default class Agents extends View {
   // takes the keyboard back.
   back(cx) {
     this.cursor = null;
+    setShared("sidebar", false);
     const term = panes().find((x) => x.pane === this.prev)?.terminal ?? focused()?.terminal;
     if (term) run("pane.focus", { terminal: term });
   }
@@ -192,7 +198,7 @@ export default class Agents extends View {
       case "g": this.cursor = ids[0] ?? null; break;
       case "shift-g": this.cursor = ids[ids.length - 1] ?? null; break;
       case "enter": case "l": case "space":
-        if (this.cursor) { const c = this.cursor; this.cursor = null; run("pane.focus", { terminal: c }); } else this.back(cx);
+        if (this.cursor) { const c = this.cursor; this.cursor = null; setShared("sidebar", false); run("pane.focus", { terminal: c }); } else this.back(cx);
         break;
       case "escape": case "q": this.back(cx); break;
       case "x": if (this.cursor) this.confirm = this.cursor; break;
