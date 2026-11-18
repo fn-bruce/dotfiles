@@ -66,6 +66,7 @@
     "ctrl-a b": "layout.toggle:sidebar",
     "ctrl-a w": "my-spaces.focus",
     "ctrl-a a": "my-agents.focus",
+    "ctrl-a u": "mod.open:my-urls",
     "ctrl-a h": "pane.go:left",
     "ctrl-a j": "pane.go:down",
     "ctrl-a k": "pane.go:up",

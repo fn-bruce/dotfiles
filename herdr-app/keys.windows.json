@@ -53,6 +53,7 @@
     "ctrl-a w": "my-spaces.focus",
     "ctrl-a a": "my-agents.focus",
     "ctrl-a t": { "command": "pane.split", "args": { "direction": "right", "mod": "my-tickets" } },
+    "ctrl-a u": "mod.open:my-urls",
     "ctrl-a h": "pane.go:left",
     "ctrl-a j": "pane.go:down",
     "ctrl-a k": "pane.go:up",
