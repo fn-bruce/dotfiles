@@ -197,6 +197,16 @@ export default class Agents extends View {
       case "escape": case "q": this.back(cx); break;
       case "x": if (this.cursor) this.confirm = this.cursor; break;
       case "tab": case "shift-tab": this.cursor = null; run("my-spaces.focus"); break;
+      case "r": {
+        // An agent's name is its tab's name (the row shows a named tab over the agent's title).
+        const tab = agents().find((a) => a.address === this.cursor)?.tab;
+        if (!tab) break;
+        const cur = spaces().flatMap((s) => s.tabs ?? []).find((t) => t.id === tab);
+        openOverlay({ mod: "prompt", kind: "dialog", width: 420, props: {
+          title: "rename agent", value: cur?.named ? cur.name : "",
+          hint: "Names its tab. Empty: the agent's own title again", command: { name: "tab.rename", args: { id: tab } } } });
+        break;
+      }
       default: return;
     }
     cx.stop_propagation();

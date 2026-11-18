@@ -62,6 +62,9 @@ export function tone(t, status) {
   return t[status] ?? t.unknown;
 }
 
+// A 15% wash of a #rrggbb theme color; other color forms fall back.
+const tint = (c, fallback) => (/^#[0-9a-f]{6}$/i.test(c) ? `${c}26` : fallback);
+
 export default class Spaces extends View {
   init(_props, cx) {
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
@@ -92,6 +95,7 @@ export default class Spaces extends View {
     this.handle = cx.focus_handle();
     this.cursor = null; // space id under the keyboard cursor while focused
     this.confirm = null; // space id waiting for y/n after x
+    this.moving = null; // space id picked up with m, dropped on the cursor with enter
     cx.spawn(async (cx) => {
       for (;;) {
         const c = await nextCommand();
@@ -110,7 +114,7 @@ export default class Spaces extends View {
       if (this.handle.is_focused()) return;
       const p = focused()?.pane;
       if (p) this.prev = p;
-      if (this.cursor || this.confirm) { this.cursor = null; this.confirm = null; cx.notify(); }
+      if (this.cursor || this.confirm || this.moving) { this.cursor = null; this.confirm = null; this.endMove(); cx.notify(); }
     });
     cx.timer.every(15000, cx => this.refreshMachines(cx));
     // Refresh only when the refs could have changed (see `due`).
@@ -354,6 +358,21 @@ export default class Spaces extends View {
     }
     const ids = this.ordered().map((r) => r.w.id);
     const at = Math.max(0, ids.indexOf(this.cursor));
+    if (this.moving) {
+      // Carry the picked-up space: the cursor is where it lands (the drag's drop line shows it).
+      switch (e.keystroke) {
+        case "j": case "down": this.cursor = ids[Math.min(ids.length - 1, at + 1)] ?? null; break;
+        case "k": case "up": this.cursor = ids[Math.max(0, at - 1)] ?? null; break;
+        case "g": this.cursor = ids[0] ?? null; break;
+        case "shift-g": this.cursor = ids[ids.length - 1] ?? null; break;
+        case "enter": case "space": case "m": this.dropMove(); break;
+        case "escape": case "q": this.cursor = this.moving; this.endMove(); break;
+      }
+      this.aimMove();
+      cx.stop_propagation();
+      cx.notify();
+      return;
+    }
     switch (e.keystroke) {
       case "j": case "down": this.cursor = ids[Math.min(ids.length - 1, at + 1)] ?? null; break;
       case "k": case "up": this.cursor = ids[Math.max(0, at - 1)] ?? null; break;
@@ -368,12 +387,41 @@ export default class Spaces extends View {
         break;
       case "escape": case "q": this.back(cx); break;
       case "x": if (this.cursor) this.confirm = this.cursor; break;
+      case "m": if (this.cursor) { this.moving = this.pressed = this.cursor; this.aimMove(); } break;
       case "tab": case "shift-tab": this.cursor = null; run("my-agents.focus"); break;
-      case "r": if (this.cursor) { run("space.select", { id: this.cursor }); run("space.rename"); } break;
+      case "r": if (this.cursor) {
+        const id = this.cursor;
+        openOverlay({ mod: "prompt", kind: "dialog", width: 420, props: {
+          title: "rename space", value: spaces().find((s) => s.id === id)?.name ?? "",
+          hint: "Empty: Herdr's name again", command: { name: "space.rename", args: { id } } } });
+      } break;
       default: return;
     }
     cx.stop_propagation();
     cx.notify();
+  }
+
+  // Move mode reuses the mouse drag's look: pressed = the carried space, over = the drop target
+  // (only within the same machine, as dragging).
+  aimMove() {
+    if (!this.moving) return;
+    const sp = spaces();
+    const from = sp.find((s) => s.id === this.moving), to = sp.find((s) => s.id === this.cursor);
+    this.over = from && to && (from.machine ?? null) === (to.machine ?? null) ? to.id : null;
+  }
+
+  dropMove() {
+    const id = this.moving, over = this.over;
+    this.endMove();
+    this.cursor = id;
+    if (!id || !over || over === id) return;
+    const index = spaces().findIndex((s) => s.id === over);
+    if (index !== -1) run("space.move", { id, index: index + 1 });
+  }
+
+  endMove() {
+    if (!this.moving) return;
+    this.moving = this.pressed = this.over = null;
   }
 
   menu(w) {
@@ -550,10 +598,11 @@ export default class Spaces extends View {
       .when(on, (el) => el.bg(t.selected))
       .when(!on, (el) => el.hover((s) => s.bg(t.hover)))
       .when(this.cursor === w.id, (el) => el.border_1().border_color(t.accent))
+      .when(this.moving === w.id, (el) => el.bg(tint(t.accent, t.selected)).border_2().border_color(t.accent))
       .on_hover((over, cx) => {
-        if (over && this.handle.is_focused() && !this.confirm && this.cursor !== w.id) { this.cursor = w.id; cx.notify(); }
+        if (over && this.handle.is_focused() && !this.confirm && this.cursor !== w.id) { this.cursor = w.id; this.aimMove(); cx.notify(); }
       })
-      .when(this.pressed === w.id && this.over !== w.id, (el) => el.opacity(0.5))
+      .when(this.pressed === w.id && this.over !== w.id && !this.moving, (el) => el.opacity(0.5))
       .when(this.pressed !== null && this.over === w.id && this.pressed !== w.id, (el) => el.child(
         div().absolute().left(0).right(0).h(2).bg(t.accent)
           .when(fromIndex < i, line => line.bottom(0))
@@ -574,6 +623,7 @@ export default class Spaces extends View {
       .on_mouse_up("left", (_e, cx) => {
         const from = this.pressed;
         const over = this.over;
+        this.moving = null; // a click while carrying a space (m) drops it here
         this.pressed = null;
         this.over = null;
         if (from !== null && over === w.id && from !== w.id) {
@@ -590,7 +640,8 @@ export default class Spaces extends View {
           .when(Boolean(tree), el => el.pl(22).child(svg("mods/workspace-chrome/branch.svg").size(13).flex_none().text_color(t.dim)))
           .when(!tree, el => el.child(h_flex().size(18).flex_none().rounded(5).bg(fill).items_center().justify_center().text_size(10.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?")))
           .child(div().flex_initial().min_w(SIDE_MIN).truncate().text_color(t.foreground).child(w.name))
-          .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
+          .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1())
+          .when(this.moving === w.id, (el) => el.child(div().flex_none().text_color(t.accent).font_bold().child("\u21C5"))),
       );
   }
 
@@ -634,6 +685,7 @@ export default class Spaces extends View {
       .when(!w.active, (el) => el.hover((s) => s.bg(t.hover)))
       .when(this.cursor === w.id, (el) => el.border_1().border_color(t.accent))
       .when(this.confirm === w.id, (el) => el.border_1().border_color(t.ansi1))
+      .when(this.moving === w.id, (el) => el.bg(tint(t.accent, t.selected)).border_2().border_color(t.accent))
       .on_click(() => run("space.select", { id: w.id }))
       .child(div().text_color(w.active ? t.foreground : t.muted).child(String(i + 1)))
       .child(div().absolute().right(5).text_color(tone(t, w.status)).child(glyph(w.status))));
@@ -667,7 +719,12 @@ export default class Spaces extends View {
       .on_key_down((e, cx) => this.key(e, cx))
       .child(h_flex().h(31).pl(16).pr(10).items_center().justify_between().text_size(11.5).text_color(t.dim)
         .when(collapsed, el => el.pl(0).pr(0).justify_center())
-        .when(!collapsed, el => el.child("Spaces"))
+        .when(!collapsed && !this.moving, el => el.child("Spaces"))
+        .when(!collapsed && Boolean(this.moving), el => el.bg(tint(t.accent, t.hover)).text_color(t.accent)
+          .child(h_flex().min_w(0).gap(6).items_center()
+            .child(div().flex_none().font_bold().child("\u21C5 Moving"))
+            .child(div().min_w(0).truncate().text_color(t.foreground).child(spaces().find((x) => x.id === this.moving)?.name ?? ""))
+            .child(div().flex_none().text_color(t.dim).child("j/k \u00B7 \u23CE drop \u00B7 esc"))))
         .child(div().id("space-new").size(26).flex_none().flex().items_center().justify_center().rounded(6).hover(s => s.bg(t.hover).text_color(t.foreground))
           .on_click(() => run("space.new")).child(svg("mods/workspace-chrome/plus.svg").size(14))))
       .child(v_flex().flex_1().min_h(0).px(collapsed ? 0 : 8).pb(14).overflow_y_scrollbar().mode("always").track_scroll(this.scroll)
