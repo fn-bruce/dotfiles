@@ -189,6 +189,8 @@ export default class Tickets extends View {
     this.images = new Map(); // guid -> { status, path, name, url }
     this.error = null;
     this.busy = null; // a short line while az runs
+    this.working = new Map(); // ticket id -> what a background write is doing to it ("saving")
+    this.jobs = 0; // background writes still running
     this.fetchedAt = 0;
     this.y = 0; this.viewH = 0; this.contentH = 0; this.pendingG = false;
     this.cursor = 0; // comments
@@ -653,8 +655,8 @@ export default class Tickets extends View {
       this.confirm = {
         title: `Change state to ${s.name}?`,
         lines: [`${P.current} → ${s.name}`],
-        back: "state",
-        run: async () => { await this.patch([{ op: "add", path: `/fields/${F.state}`, value: s.name }]); this.statePick = null; return `State set to ${s.name}`; },
+        back: "state", next: "item", work: "updating state",
+        run: async () => { const id = this.id; this.statePick = null; await this.patch([{ op: "add", path: `/fields/${F.state}`, value: s.name }]); return `#${id} state set to ${s.name}`; },
       };
       this.view = "confirm";
     }
@@ -671,10 +673,11 @@ export default class Tickets extends View {
     this.confirm = {
       title: "Save pointing to Azure?",
       lines: changes.map((c) => `${c.label}  ${c.from ?? "—"} → ${c.to ?? "—"}`),
-      back: "point",
+      back: "point", next: "item", work: "saving pointing",
       run: async () => {
+        const id = this.id;
         await this.patch(changes.map((c) => (c.to == null ? { op: "remove", path: `/fields/${c.field}` } : { op: "add", path: `/fields/${c.field}`, value: c.field === F.points ? Number(c.to) : c.to })));
-        return `Pointing saved${changes.some((c) => c.field === F.points) ? ` · ${changes.find((c) => c.field === F.points).to ?? "no"} points` : ""}`;
+        return `#${id} pointing saved${changes.some((c) => c.field === F.points) ? ` · ${changes.find((c) => c.field === F.points).to ?? "no"} points` : ""}`;
       },
     };
     this.view = "confirm";
@@ -688,32 +691,48 @@ export default class Tickets extends View {
     this.confirm = {
       title: used.length ? `Post comment and notify ${used.length} ${used.length === 1 ? "person" : "people"}?` : "Post comment?",
       lines: text.split("\n").slice(0, 6),
-      back: "compose",
+      back: "compose", next: "comments", work: "commenting",
       run: async () => {
-        await this.rest("post", `${this.apiComments()}?api-version=7.1-preview.4`, ["--headers", "Content-Type=application/json", "--body", JSON.stringify({ text: toHtml(text, used) })]);
+        const id = this.id;
+        const sent = this.rest("post", `${this.apiComments()}?api-version=7.1-preview.4`, ["--headers", "Content-Type=application/json", "--body", JSON.stringify({ text: toHtml(text, used) })]);
         this.compose = null;
-        this.view = "comments";
-        return "Comment posted";
+        // A failure gives the text back, if that ticket is still open and no new comment was started.
+        try { await sent; } catch (e) { if (this.id === id && !this.compose) this.compose = c; throw e; }
+        return `Comment posted on #${id}`;
       },
     };
     this.view = "confirm";
   }
 
+  // y: back to where you were at once (c.next, else c.back); the write runs in the background. The ticket shows
+  // a "<work>…" pill in the list and its header (c.workIds for list rows, else the open ticket), the header counts
+  // running writes, and a toast reports each result (red on failure). run starts at y, on the ticket open then:
+  // it reads this.id before its first await.
   async runConfirm(cx) {
     cx = this.acx ?? cx;
+    this.working ??= new Map(); this.jobs ??= 0; // a pane that outlived a hot reload
     const c = this.confirm;
-    this.busy = "saving"; this.error = null; cx.notify();
-    try {
-      const msg = await c.run();
-      this.confirm = null; this.busy = null;
-      if (this.view === "confirm") this.view = c.back === "point" || c.back === "state" ? "item" : c.back;
-      this.toast = msg; cx.timer.after(4000, (cx) => { this.toast = null; cx.notify(); });
-      cx.notify();
-      await this.load(cx);
-      if (c.back === "compose" || this.view === "comments") await this.loadComments(cx);
-    } catch (e) {
-      this.busy = null; this.error = errText(e); cx.notify();
-    }
+    const id = this.id;
+    this.confirm = null; this.error = null;
+    this.view = c.next ?? c.back; this.handle.focus();
+    const ids = c.work ? (c.workIds ?? (id ? [id] : [])) : [];
+    for (const k of ids) this.working.set(k, c.work);
+    this.jobs++; cx.notify();
+    let ok = false, msg;
+    try { msg = await c.run(); ok = true; }
+    catch (e) { msg = errText(e); }
+    this.jobs--;
+    for (const k of ids) this.working.delete(k);
+    this.flash(ok ? msg : `Failed: ${msg}`, cx, ok ? 4000 : 10000, !ok);
+    cx.notify();
+    if (!ok || c.back === "list") return;
+    // Reload only if that ticket is still the one on screen.
+    try { if (this.id === id && this.view !== "list") { await this.load(cx); if (this.view === "comments") await this.loadComments(cx); } } catch {}
+  }
+  flash(msg, cx, ms = 3000, bad = false) {
+    cx = this.acx ?? cx; const n = (this.toastId = (this.toastId ?? 0) + 1);
+    this.toast = msg; this.toastBad = bad;
+    cx.timer.after(ms, (cx) => { if (this.toastId === n) { this.toast = null; cx.notify(); } });
   }
 
   // A reaction is one click in the web UI too: no confirm row, the same key undoes it.
@@ -1004,7 +1023,7 @@ export default class Tickets extends View {
     this.confirm = {
       title: `Deploy ${rows.length === 1 ? "an agent for 1 ticket" : `one agent for ${rows.length} tickets`} ${to}?`,
       lines: rows.map((r, i) => `${r.id}  ${r.title}${i === 0 && rows.length > 1 ? "  (lead)" : ""}`),
-      back: "list",
+      back: "list", work: "deploying", workIds: rows.map((r) => r.id),
       yes: "send",
       run: async () => { const msg = await this.deploy(rows); this.list.marked = []; return msg; },
     };
@@ -1174,7 +1193,8 @@ export default class Tickets extends View {
         .when(f[F.priority] != null, (el) => el.child(div().text_color(t.dim).child(`P${f[F.priority]}`))))
       .child(h_flex().flex_wrap().gap(8).items_baseline()
         .child(div().text_size(16).font_medium().child(f[F.title] ?? ""))
-        .child(this.pill(t, f[F.state] ?? "", this.stateColor(t, f[F.state]))));
+        .child(this.pill(t, f[F.state] ?? "", this.stateColor(t, f[F.state])))
+        .when(this.working?.has(this.id), (el) => el.child(this.pill(t, `${this.working?.get(this.id)}…`, t.working))));
   }
 
   pointsBlock(t) {
@@ -1381,6 +1401,7 @@ export default class Tickets extends View {
           .child(div().w(10).flex_none().text_color(t.accent).child(marked ? "●" : ""))
           .child(div().w(44).flex_none().text_size(11.5).text_color(r.type === "Bug" ? t.blocked : t.dim).child(String(r.id)))
           .child(div().flex_1().min_w(0).truncate().text_color(cur ? t.foreground : t.muted).child(r.title))
+          .when(this.working?.has(r.id), (el) => el.child(this.pill(t, `${this.working?.get(r.id)}…`, t.working)))
           .child(div().flex_none().text_size(11).text_color(r.whoId ? t.dim : t.working).child(r.whoId ? shortName(r.who) : "—"))
           .child(div().w(28).flex_none().text_right().text_color(r.points == null ? t.working : t.muted).child(r.points == null ? "—" : String(Number(r.points)))));
       }
@@ -1461,8 +1482,9 @@ export default class Tickets extends View {
       .child(div().child(v === "list" ? "Tickets" : `${crumb ? "" : "Tickets · "}${this.id ?? ""}${suffix}`))
       .when(Boolean(pos), (el) => el.child(div().text_color(t.dim).child(`${pos} · n/N`)))
       .child(div().flex_1())
+      .when(this.jobs > 0, (el) => el.child(div().text_color(t.working).child(`${this.jobs} ${this.jobs === 1 ? "write" : "writes"} running…`)))
       .when(Boolean(this.busy), (el) => el.child(div().text_color(t.working).child(`${this.busy}…`)))
-      .when(!this.busy && Boolean(this.toast), (el) => el.child(div().text_color(t.done).child(this.toast)))
+      .when(!this.busy && Boolean(this.toast), (el) => el.child(div().text_color(this.toastBad ? t.blocked : t.done).child(this.toast)))
       .when(!this.busy && !this.toast && (v === "list" ? this.list.fetchedAt : this.fetchedAt) > 0, (el) => el.child(div().text_color(t.dim).child(`updated ${Math.max(0, Math.round((Date.now() - (v === "list" ? this.list.fetchedAt : this.fetchedAt)) / 60000))}m ago`)));
 
     if (v === "list") {

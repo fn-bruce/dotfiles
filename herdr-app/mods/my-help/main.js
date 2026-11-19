@@ -17,6 +17,10 @@
 // Keys, searching (all bindings; matches key, label or command; shows a flat list):
 //   ↑/↓ or ctrl-j/ctrl-k move   enter run the highlighted binding   esc back to browsing
 // From the CLI: herdr-app do my-help.key-j (any key, e.g. key-ctrl-d, key-shift-g, key-/, key-escape)
+//
+// A mod can show its own keys instead (my-prs ?): openOverlay({ mod: "my-help", kind: "dialog", props: { sheet } }) with
+//   sheet = { title, subtitle, source, groups: [{ name, ansi, rows: [[keys, label], ...] }] }
+// Those rows are display only: enter in search does nothing.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
@@ -151,6 +155,13 @@ function findConflicts(all, leader, mac) {
   return { conflicts: out, bad, id };
 }
 
+// A mod's own sheet in the shape build() returns.
+function sheetData(sheet) {
+  const groups = (sheet.groups ?? []).map((g) => ({ name: g.name, ansi: g.ansi ?? 7,
+    rows: (g.rows ?? []).map(([k, label]) => ({ chips: [{ chip: k, leader: false }], label, mkey: "", raw: [k], action: null, hasLeader: false, stock: false, unlabeled: false, conflict: false })) }));
+  return { leader: null, mac: true, groups, conflicts: [], entries: groups.flatMap((g) => g.rows), sheet };
+}
+
 function build() {
   const mac = (win()?.platform ?? (globalThis.process?.platform === "win32" ? "windows" : "macos")) === "macos";
   const all = keys();
@@ -281,7 +292,7 @@ export default class MyHelp extends View {
 
   // Runs the row's binding. send: rows type into a terminal; nothing to run here.
   exec(e) {
-    if (!e) return;
+    if (!e?.action) return;
     const a = e.action;
     if (typeof a === "string" && a.startsWith("send:")) return;
     this.close();
@@ -332,7 +343,8 @@ export default class MyHelp extends View {
     const t = theme();
     const color = (i) => t[`ansi${i}`] ?? t.accent;
     const mono = settings().font;
-    this.data = build();
+    const sheet = props()?.sheet;
+    this.data = sheet ? sheetData(sheet) : build();
     const { leader, mac, groups, conflicts, entries } = this.data;
     const leaderName = leader ? (() => { const c = chord(leader, false); return c.mods + c.key; })() : null;
     const warn = t.ansi3 ?? t.accent;
@@ -350,7 +362,7 @@ export default class MyHelp extends View {
       e.conflict ? div().w(10).flex_none().font_bold().text_color(danger).child("!")
         : e.unlabeled ? div().w(10).flex_none().font_bold().text_color(warn).child("?")
           : div().w(10).flex_none();
-    const labelEl = (e, c) => div().flex_1().min_w(0).overflow_hidden().text_color(e.unlabeled ? t.dim : c).when(e.unlabeled, (d) => d.italic()).child(e.label);
+    const labelEl = (e, c) => div().flex_1().min_w(0).truncate().text_color(e.unlabeled ? t.dim : c).when(e.unlabeled, (d) => d.italic()).child(e.label);
 
     const filtering = this.searching && Boolean(this.filter.trim());
     const matches = this.matches();
@@ -459,8 +471,8 @@ export default class MyHelp extends View {
       .child(
         h_flex().h(44).flex_none().px(18).items_center().justify_between().border_b(1).border_color(t.border)
           .child(h_flex().gap(12).items_center()
-            .child(div().text_size(13).font_bold().text_color(t.accent).child("KEYBINDS"))
-            .child(div().text_size(12).text_color(t.dim).child("herdr"))
+            .child(div().text_size(13).font_bold().text_color(t.accent).child(sheet?.title ?? "KEYBINDS"))
+            .child(div().text_size(12).text_color(t.dim).child(sheet ? (sheet.subtitle ?? "") : "herdr"))
             .when(!this.showAll && hiddenCount > 0, (el) => el.child(stat(`${hiddenCount} stock hidden`, t.dim)))
             .when(unlabeled > 0, (el) => el.child(stat(`? ${unlabeled} unlabeled`, warn)))
             .when(conflicts.length > 0, (el) => el.child(stat(`! ${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"}`, danger))))
@@ -504,11 +516,11 @@ export default class MyHelp extends View {
         h_flex().h(34).flex_none().px(18).gap(18).items_center().border_t(1).border_color(t.border).bg(t.background)
           .text_size(11.5).text_color(t.dim)
           .children(this.searching
-            ? [hint("↑ ↓", "move"), hint("⏎", "run"), hint("esc", "back")]
+            ? [hint("↑ ↓", "move"), ...(sheet ? [] : [hint("⏎", "run")]), hint("esc", "back")]
             : [hint("j k", "scroll"), hint("d u", "half page"), hint("g G", "top/end"), hint("1–9", "group"),
-               hint("a", this.showAll ? "hide stock" : "show all"), hint("/", "search"), hint("esc", "close")])
+               ...(sheet ? [] : [hint("a", this.showAll ? "hide stock" : "show all")]), hint("/", "search"), hint("esc", "close")])
           .child(div().flex_1())
-          .child(mac ? "keys.json" : "keys.windows.json"),
+          .child(sheet ? (sheet.source ?? "") : mac ? "keys.json" : "keys.windows.json"),
       );
   }
 }

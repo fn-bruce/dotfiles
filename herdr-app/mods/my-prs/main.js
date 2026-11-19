@@ -15,8 +15,9 @@
 // never on the command line.
 //
 // Keys (list):   j/k move   enter/l open   h/l fold   1 2 set / all   g by repo   r for me   m mine
-//                @ person   / search   b bots   D diff   c conversation   o browser   y copy URL   R refresh   q close
-// Keys (PR):     j k d u scroll   enter diff   f files   c conversation   x checks   v review   M merge
+//                @ person   / search   b bots   D diff   c conversation   o browser   y copy URL   R refresh   W ready   q close
+//                M merge   x mark (then y copies the marked as a bullet list, W readies, M merges, esc clears)
+// Keys (PR):     j k d u scroll   enter diff   f files   c conversation   x checks   v review   M merge   W ready for review
 // Every view: j/k move a line or row, d/u half a page.
 //                : ask Claude   o browser   y copy URL   r refresh   n/N next, prev   esc/h back   q close
 // Keys (diff):   j/k line   d/u page   ] [ file   n/N hunk   c comment on line   x viewed   v review   esc back
@@ -38,7 +39,7 @@ const LINE = 44;
 const DIFF_LINE = 18;
 const ROW = 48; // a list row: two lines
 let LOGIN_SUFFIX = null; // e.g. "-corp": stripped from logins for display (config loginSuffix)
-const LIST_FIELDS = "number,title,author,isDraft,updatedAt,createdAt,reviewDecision,statusCheckRollup,additions,deletions,changedFiles,reviewRequests,headRefName,baseRefName,url,labels";
+const LIST_FIELDS = "number,title,author,isDraft,updatedAt,createdAt,reviewDecision,statusCheckRollup,additions,deletions,changedFiles,reviewRequests,headRefName,baseRefName,url,labels,mergeable";
 const BOT = /aikido|dependabot|token-bot|renovate|\[bot\]|^app\//i;
 const REACTIONS = [["+1", "👍"], ["heart", "❤"], ["hooray", "🎉"], ["laugh", "😄"], ["eyes", "👀"], ["rocket", "🚀"], ["confused", "😕"], ["-1", "👎"]];
 const VERDICTS = [["APPROVE", "Approve", "goes to the author as a ✓"], ["REQUEST_CHANGES", "Request changes", "blocks merge until re-review"], ["COMMENT", "Comment", "no verdict"]];
@@ -150,7 +151,7 @@ export default class PRs extends View {
     this.view = this.number ? "pr" : "list";
     this.returnTo = null;
     this.me = null; this.teams = null;
-    this.list = { scope: p.scope === "all" ? "all" : "set", rows: null, cursor: 0, folded: new Set(["automated"]), byRepo: false, person: null, needs: p.needs !== false, search: "", searching: false, bots: false, forMe: new Set(), fetchedAt: 0, picker: null, people: null, enriching: 0 };
+    this.list = { scope: p.scope === "all" ? "all" : "set", rows: null, cursor: 0, folded: new Set(["automated"]), byRepo: false, person: null, needs: p.needs !== false, search: "", searching: false, bots: false, forMe: new Set(), fetchedAt: 0, picker: null, people: null, enriching: 0, marked: new Set() };
     this.pr = null; // normalized PR
     this.fetchedAt = 0;
     this.files = { cursor: 0, viewed: new Set(), folded: new Set(), sort: "path" };
@@ -162,6 +163,7 @@ export default class PRs extends View {
     this.compose = null; // { kind: "inline" | "reply" | "general" | "ask", state, line, thread, context, ctxAt, postNow }
     this.confirm = null; // { title, lines, back, run }
     this.error = null; this.busy = null; this.toast = null;
+    this.working = new Map(); // PR key -> what a background action is doing to it ("merging")
     this.y = 0; this.viewH = 0; this.contentH = 0; this.pendingG = false;
     this.rowTop = []; this.rowH = [];
     this.tab = focused()?.tab ?? null;
@@ -169,6 +171,7 @@ export default class PRs extends View {
     this.mono = ["JetBrains Mono", "Cascadia Mono", "Cascadia Code", "Consolas", "Menlo", "Courier New"].find((f) => have.includes(f)) ?? null;
     if (checking()) return;
     try { this.me = localStorage.getItem(this.ns("prs:me")) || null; const t = localStorage.getItem(this.ns("prs:teams")); if (t) this.teams = JSON.parse(t); } catch {}
+    this.restoreView();
     this.cacheList();
     // The first load starts from a timer tick owned by this view: opened by a key in another mod (the leader's g),
     // init runs inside that mod's call and work started there belongs to the popup that closes right after.
@@ -267,7 +270,11 @@ export default class PRs extends View {
     else if (this.review?.inSummary) this.review.state.focus();
     else this.handle.focus();
   }
-  flash(msg, cx, ms = 3000) { cx = this.acx ?? cx; this.toast = msg; cx.timer.after(ms, (cx) => { this.toast = null; cx.notify(); }); }
+  flash(msg, cx, ms = 3000, bad = false) {
+    cx = this.acx ?? cx; const id = (this.toastId = (this.toastId ?? 0) + 1);
+    this.toast = msg; this.toastBad = bad;
+    cx.timer.after(ms, (cx) => { if (this.toastId === id) { this.toast = null; cx.notify(); } });
+  }
 
   // ---- gh ---------------------------------------------------------------------
 
@@ -279,7 +286,26 @@ export default class PRs extends View {
   restoreCache() {
     this.me = null; this.teams = null;
     try { this.me = localStorage.getItem(this.ns("prs:me")) || null; const t = localStorage.getItem(this.ns("prs:teams")); if (t) this.teams = JSON.parse(t); } catch {}
+    this.restoreView();
     if (this.number) this.cachePr(); else this.cacheList();
+  }
+  // The list opens the way it was left (per profile): scope, grouping, person, needs review, bots, folded groups.
+  // Props from the opener (scope, needs) still win. Search, cursor and marks start fresh.
+  saveView() {
+    const L = this.list;
+    try { localStorage.setItem(this.ns("prs:view"), JSON.stringify({ scope: L.scope, byRepo: L.byRepo, person: L.person, needs: L.needs, bots: L.bots, folded: [...L.folded] })); } catch {}
+  }
+  restoreView() {
+    let v = null;
+    try { v = JSON.parse(localStorage.getItem(this.ns("prs:view")) ?? "null"); } catch {}
+    if (!v) return;
+    const L = this.list, p = this.props ?? {};
+    if (p.scope == null && (v.scope === "set" || v.scope === "all")) L.scope = v.scope;
+    if (p.needs == null && typeof v.needs === "boolean") L.needs = v.needs;
+    if (typeof v.byRepo === "boolean") L.byRepo = v.byRepo;
+    if (typeof v.bots === "boolean") L.bots = v.bots;
+    if (v.person === null || typeof v.person === "string") L.person = v.person;
+    if (Array.isArray(v.folded)) L.folded = new Set(v.folded);
   }
   multi() { return (this.profiles?.length ?? 0) > 1; }
   // 1-9 or a in the list: that profile (a: the next one) from local.json; its own owner, account, repos and caches.
@@ -367,7 +393,7 @@ export default class PRs extends View {
     const rr = (x.reviewRequests ?? []).map((r) => r.login ?? r.slug ?? r.name ?? "").filter(Boolean);
     return { key: `${repo}#${x.number}`, repo, number: x.number, title: x.title ?? "", author: x.author?.login ?? "", bot: isBot(x.author), draft: Boolean(x.isDraft),
       updated: x.updatedAt, created: x.createdAt, decision: x.reviewDecision ?? "", checks: checksState(x.statusCheckRollup), checksN: checksCount(x.statusCheckRollup),
-      add: x.additions ?? null, del: x.deletions ?? null, files: x.changedFiles ?? null, requested: rr, head: x.headRefName ?? "", base: x.baseRefName ?? "", url: x.url, labels: (x.labels ?? []).map((l) => l.name), lite: false };
+      add: x.additions ?? null, del: x.deletions ?? null, files: x.changedFiles ?? null, requested: rr, head: x.headRefName ?? "", base: x.baseRefName ?? "", url: x.url, labels: (x.labels ?? []).map((l) => l.name), mergeable: x.mergeable ?? "", lite: false };
   }
   rowFromSearch(x) {
     const repo = x.repository?.name ?? "";
@@ -637,25 +663,43 @@ export default class PRs extends View {
   // ---- writes (each behind the confirm row) -------------------------------------
 
   // The confirm row needs the keyboard: a summary or comment box that still had focus would swallow the y.
-  ask(title, lines, back, run) {
-    this.confirm = { title, lines, back, run }; this.view = "confirm";
+  // back: where n / esc return. next: where y goes (default back) while run works in the background.
+  // after: what reloads once run succeeds (default: the PR it ran on, if it is still the open one).
+  // run starts at y, on the PR still open then: read this.number / this.full() before its first await.
+  // While it runs, the PR it acts on shows a "<work>…" pill in the list and its header: work is inferred from
+  // the title (or set confirm.work = { key, label } for another PR; batch runs mark their rows themselves).
+  ask(title, lines, back, run, after, next) {
+    const work = [[/^Merge #/, "merging"], [/^Merge |^Mark \d+ PRs/, null], [/^Mark/, "readying"], [/^Re-run/, "re-running"], [/^(Un)?resolve/i, "resolving"],
+      [/^(Post|Reply)/, "commenting"], [/^(Approve|Request changes|Comment) #/, "reviewing"]].find(([re]) => re.test(title))?.[1] ?? null;
+    this.confirm = { title, lines, back, run, after, next, work }; this.view = "confirm";
     if (this.review) this.review.inSummary = false;
     this.handle.focus();
   }
 
+  // y: back to where you were at once; the write runs in the background, the header counts what is still running,
+  // and a toast reports each result (red on failure).
   async runConfirm(cx) {
     cx = this.acx ?? cx;
+    this.working ??= new Map(); this.jobs ??= 0; // a pane that outlived a hot reload
     const c = this.confirm;
-    this.busy = "sending"; this.error = null; cx.notify();
-    try {
-      const msg = await c.run();
-      this.confirm = null; this.busy = null;
-      if (this.view === "confirm") this.view = c.back;
-      this.flash(msg, cx, 4000);
-      cx.notify();
-      await this.load(cx);
-    } catch (e) { this.busy = null; this.error = errText(e); cx.notify(); }
+    const key = this.number ? this.key_() : null;
+    this.confirm = null; this.error = null;
+    this.view = c.next ?? c.back; this.handle.focus();
+    const wk = typeof c.work === "string" ? (key ? { key, label: c.work } : null) : c.work;
+    if (wk) this.working.set(wk.key, wk.label);
+    this.jobs = (this.jobs ?? 0) + 1; cx.notify();
+    let ok = false, msg;
+    try { msg = await c.run(); ok = true; }
+    catch (e) { msg = errText(e); }
+    this.jobs--;
+    if (wk) this.working.delete(wk.key);
+    this.flash(ok ? msg : `Failed: ${msg}`, cx, ok ? 4000 : 10000, !ok);
+    cx.notify();
+    if (!ok) return;
+    try { await (c.after ? c.after(cx) : this.reloadIfOpen(key, cx)); } catch {}
   }
+  // Reloads the PR only if it is still the one on screen (not the list, not another PR).
+  reloadIfOpen(key, cx) { if (key && this.view !== "list" && this.number && this.key_() === key) return this.load(cx); }
 
   startReview() {
     if (this.review) { this.review.inSummary = false; this.view = "review"; this.handle.focus(); return; }
@@ -677,19 +721,85 @@ export default class PRs extends View {
     this.ask(`${label} #${this.number}${n ? ` with ${plural(n, "inline comment")}` : ""}?`,
       [body ? body.split("\n")[0].slice(0, 120) : "(no summary)", ...this.pending.slice(0, 4).map((c) => `${c.path.split("/").pop()}:${c.line}  ${c.body.split("\n")[0].slice(0, 80)}`), "The author and the team are notified."], "review",
       async () => {
+        const num = this.number, full = this.full(), key = this.key_();
+        const saved = { pending: this.pending, review: this.review };
         const payload = { event, body, comments: this.pending.map((c) => ({ path: c.path, line: c.line, side: c.side, body: c.body })) };
-        const f = await this.tmpFile(`review-${Date.now()}.json`, JSON.stringify(payload));
-        await this.gh(["api", "-X", "POST", `repos/${this.full()}/pulls/${this.number}/reviews`, "--input", f]);
-        try { await fs.unlink(f.replace(/\\/g, "/")); } catch {}
-        this.pending = []; this.review = null; this.view = "pr";
-        return `${label}d: #${this.number}`.replace("Request changesd", "Changes requested").replace("Commentd", "Commented");
-      });
+        this.pending = []; this.review = null;
+        try {
+          const f = await this.tmpFile(`review-${Date.now()}.json`, JSON.stringify(payload));
+          await this.gh(["api", "-X", "POST", `repos/${full}/pulls/${num}/reviews`, "--input", f]);
+          try { await fs.unlink(f.replace(/\\/g, "/")); } catch {}
+        } catch (e) {
+          // Still on that PR with nothing new started: give the review back, so v retries it.
+          if (this.key_() === key && !this.review && !this.pending.length) { this.pending = saved.pending; this.review = saved.review; }
+          throw e;
+        }
+        return `${label}d: ${full.split("/").pop()} #${num}`.replace("Request changesd", "Changes requested").replace("Commentd", "Commented");
+      }, undefined, "pr");
   }
   askMerge() {
     const p = this.pr;
     this.ask(`Merge #${this.number} into ${p.base} (squash)?`,
       [`${p.head} → ${p.base}`, `Deletes ${p.head} after the merge.`, p.decision === "APPROVED" ? "Approved." : "Not approved yet: GitHub may refuse.", p.checksState === "pass" ? "Checks passed." : `Checks: ${p.checksState}.`], "pr",
-      async () => { await this.gh(["pr", "merge", String(this.number), "-R", this.full(), "--squash", "--delete-branch"], 120000); return `Merged #${this.number}`; });
+      async () => { const num = this.number, repo = this.repo; await this.gh(["pr", "merge", String(num), "-R", this.full(), "--squash", "--delete-branch"], 120000); return `Merged ${repo} #${num}`; },
+      (cx) => { if (this.list.rows) this.loadList(cx); });
+  }
+  // From the PR view (no row) or from a list row.
+  askReady(row) {
+    const repo = row ? row.repo : this.repo, number = row ? row.number : this.number;
+    const draft = row ? row.draft : this.pr.draft, title = row ? row.title : this.pr.title;
+    if (!draft) { this.error = `#${number} is not a draft.`; return; }
+    this.ask(`Mark ${repo} #${number} ready for review?`, [title, "Leaves draft: requested reviewers and code owners are notified."], row ? "list" : "pr",
+      async () => { await this.gh(["pr", "ready", String(number), "-R", this.full(repo)]); if (row) row.draft = false; return `Ready for review: #${number}`; },
+      (cx) => { if (this.list.rows) this.loadList(cx); });
+    this.confirm.work = { key: `${repo}#${number}`, label: "readying" };
+  }
+  // x-marked list rows: every draft among them, one gh pr ready each.
+  askReadyMarked(rows) {
+    const drafts = rows.filter((r) => r.draft);
+    if (!drafts.length) return "None of the marked PRs is a draft";
+    const skip = rows.length - drafts.length;
+    this.ask(`Mark ${plural(drafts.length, "PR")} ready for review?`,
+      [...drafts.slice(0, 8).map((r) => `${r.repo} #${r.number}  ${r.title.slice(0, 90)}`), ...(drafts.length > 8 ? [`… ${drafts.length - 8} more`] : []),
+        ...(skip ? [`Skips ${plural(skip, "marked PR")} that ${skip === 1 ? "is" : "are"} not a draft.`] : []), "Leaves draft: requested reviewers and code owners are notified."], "list",
+      async () => {
+        const failed = [], failedKeys = new Set();
+        for (const r of drafts) this.working.set(r.key, "readying");
+        for (const r of drafts) {
+          try { await this.gh(["pr", "ready", String(r.number), "-R", this.full(r.repo)]); r.draft = false; }
+          catch (e) { failed.push(`#${r.number}: ${errText(e)}`); failedKeys.add(r.key); }
+          this.working.delete(r.key); this.acx?.notify();
+        }
+        // Unmark everything sent, skipped non-drafts too; only failures stay marked for a retry.
+        for (const r of rows) if (!failedKeys.has(r.key)) this.list.marked.delete(r.key);
+        if (failed.length === drafts.length) throw new Error(failed.join("; "));
+        return `Ready for review: ${drafts.length - failed.length}` + (failed.length ? `, failed ${failed.join("; ")}` : "");
+      },
+      (cx) => this.loadList(cx));
+  }
+  // M in the list: the marked rows, else the cursor row. Squash, delete the branch, one gh pr merge each.
+  askMergeRows(rows) {
+    const ok = rows.filter((r) => !r.draft);
+    if (!ok.length) return rows.length === 1 ? `#${rows[0].number} is a draft: W readies it first` : "All marked PRs are drafts";
+    const skip = rows.length - ok.length;
+    const state = (r) => r.lite ? "" : `  ${r.decision === "APPROVED" ? "approved" : "not approved"}, checks ${r.checks}`;
+    const notReady = ok.filter((r) => !r.lite && (r.decision !== "APPROVED" || r.checks !== "pass")).length;
+    this.ask(ok.length === 1 ? `Merge ${ok[0].repo} #${ok[0].number} (squash)?` : `Merge ${plural(ok.length, "PR")} (squash)?`,
+      [...ok.slice(0, 8).map((r) => `${r.repo} #${r.number}  ${r.title.slice(0, 70)}${state(r)}`), ...(ok.length > 8 ? [`… ${ok.length - 8} more`] : []),
+        ...(skip ? [`Skips ${plural(skip, "draft")}.`] : []), "Deletes each head branch after its merge.", ...(notReady ? [`${notReady} not approved or checks not passed: GitHub may refuse.`] : [])], "list",
+      async () => {
+        const failed = [], failedKeys = new Set();
+        for (const r of ok) this.working.set(r.key, "merging");
+        for (const r of ok) {
+          try { await this.gh(["pr", "merge", String(r.number), "-R", this.full(r.repo), "--squash", "--delete-branch"], 120000); }
+          catch (e) { failed.push(`#${r.number}: ${errText(e)}`); failedKeys.add(r.key); }
+          this.working.delete(r.key); this.acx?.notify();
+        }
+        for (const r of rows) if (!failedKeys.has(r.key)) this.list.marked.delete(r.key);
+        if (failed.length === ok.length) throw new Error(failed.join("; "));
+        return `Merged ${ok.length - failed.length}` + (failed.length ? `, failed ${failed.join("; ")}` : "");
+      },
+      (cx) => this.loadList(cx));
   }
   askRerun(check) {
     if (!check?.run) { this.error = "No workflow run to re-run for this check."; return; }
@@ -716,28 +826,34 @@ export default class PRs extends View {
       }
       this.ask(`Post a comment on ${c.line.path.split("/").pop()}:${c.line.n} now?`, [...head, "Visible to everyone with repo access."], "comment",
         async () => {
+          const num = this.number, full = this.full(), key = this.key_();
+          this.compose = null;
+          const keep = (e) => { if (this.key_() === key && !this.compose) this.compose = c; throw e; }; // a failure keeps the text
           const f = await this.tmpFile(`c-${Date.now()}.json`, JSON.stringify({ body: text, commit_id: this.pr.sha, path: c.line.path, line: c.line.n, side: c.line.side }));
-          await this.gh(["api", "-X", "POST", `repos/${this.full()}/pulls/${this.number}/comments`, "--input", f]);
-          this.compose = null; this.view = "diff";
-          return "Comment posted";
-        });
+          await this.gh(["api", "-X", "POST", `repos/${full}/pulls/${num}/comments`, "--input", f]).catch(keep);
+          return `Comment posted on #${num}`;
+        }, undefined, "diff");
     } else if (c.kind === "reply") {
       const first = c.thread.comments[0];
       this.ask(`Reply to ${shortLogin(first.who)} on ${c.thread.path.split("/").pop()}:${c.thread.line ?? "?"}?`, head, "compose",
         async () => {
+          const num = this.number, full = this.full(), key = this.key_();
+          this.compose = null;
+          const keep = (e) => { if (this.key_() === key && !this.compose) this.compose = c; throw e; }; // a failure keeps the text
           const f = await this.tmpFile(`r-${Date.now()}.json`, JSON.stringify({ body: text }));
-          await this.gh(["api", "-X", "POST", `repos/${this.full()}/pulls/${this.number}/comments/${first.id}/replies`, "--input", f]);
-          this.compose = null; this.view = "threads";
-          return "Reply posted";
-        });
+          await this.gh(["api", "-X", "POST", `repos/${full}/pulls/${num}/comments/${first.id}/replies`, "--input", f]).catch(keep);
+          return `Reply posted on #${num}`;
+        }, undefined, "threads");
     } else {
       this.ask(`Post a comment on #${this.number}?`, [...head, "Not part of a review; posts right away."], "compose",
         async () => {
+          const num = this.number, full = this.full(), key = this.key_();
+          this.compose = null;
+          const keep = (e) => { if (this.key_() === key && !this.compose) this.compose = c; throw e; }; // a failure keeps the text
           const f = await this.tmpFile(`g-${Date.now()}.md`, text);
-          await this.gh(["pr", "comment", String(this.number), "-R", this.full(), "--body-file", f]);
-          this.compose = null; this.view = "threads";
-          return "Comment posted";
-        });
+          await this.gh(["pr", "comment", String(num), "-R", full, "--body-file", f]).catch(keep);
+          return `Comment posted on #${num}`;
+        }, undefined, "threads");
     }
   }
   // A reaction is one click in the web UI too: no confirm row, the same key undoes it.
@@ -780,6 +896,21 @@ export default class PRs extends View {
     return p ? { terminal: p.terminal, label: p.title ?? p.terminal } : null;
   }
   ticketOf() { return (`${this.pr?.title ?? ""} ${this.pr?.body ?? ""} ${this.pr?.head ?? ""}`).match(/AB#(\d{4,6})/)?.[1] ?? null; }
+  // i in checks / job log: send this check straight to Claude with its log tail, the PR and the diff; no prompt box.
+  async investigateCheck(check, cx) {
+    cx = this.acx ?? cx;
+    if (!check) return;
+    const back = this.view;
+    if (check.job && this.checks.log?.title !== check.name) { await this.loadLog(check, cx); this.view = back; }
+    const state = (check.conclusion || check.status || "").toLowerCase();
+    const failed = ["failure", "timed_out", "cancelled"].includes(state);
+    const where = [check.job ? `full log: gh run view --job ${check.job} -R ${this.full()} --log${failed ? "-failed" : ""}` : null, check.url].filter(Boolean).join("; ");
+    const ask = failed
+      ? `The check "${check.name}" ${state.replace("_", " ")} on this PR (${where}). Find the cause and suggest a fix.`
+      : `Look into the check "${check.name}" (${state || "no state"}) on this PR (${where}). Explain what it does and whether anything about it needs attention.`;
+    this.compose = { kind: "ask", state: { value: () => ask }, context: { pr: true, diff: true, threads: false, logs: this.checks.log?.title === check.name, ticket: true }, back };
+    await this.sendAsk(cx);
+  }
   async sendAsk(cx) {
     cx = this.acx ?? cx;
     const c = this.compose; const p = this.pr;
@@ -806,7 +937,7 @@ export default class PRs extends View {
     try {
       const r = await hc(["send", t.terminal, parts.join("\n\n")]);
       if (r.code !== 0) throw new Error(lastLine(r.stderr) || "send failed");
-      this.busy = null; this.compose = null; this.view = "pr"; this.handle.focus();
+      this.busy = null; this.view = c.back ?? "pr"; this.compose = null; this.handle.focus();
       this.flash("Sent to Claude", cx, 4000);
     } catch (e) { this.busy = null; this.error = errText(e); }
     cx.notify();
@@ -853,7 +984,7 @@ export default class PRs extends View {
       else if (k === "n" || k === "escape" || k === "q") { this.view = this.confirm.back; this.confirm = null; if (this.view !== "review") this.focus(); }
       else handled = false;
     }
-    else if (v === "list") handled = this.keyList(e, cx);
+    else if (v === "list") { handled = this.keyList(e, cx); if (handled) this.saveView(); }
     else if (v === "repos") handled = this.keyRepos(e, cx);
     else if (v === "pr") handled = this.keyPr(e, cx);
     else if (v === "files") handled = this.keyFiles(e, cx);
@@ -903,6 +1034,8 @@ export default class PRs extends View {
     const cur = ent?.row ?? null; const grp = ent?.group ?? null;
     const toggle = (g) => { L.folded.has(g.id) ? L.folded.delete(g.id) : L.folded.add(g.id); L.cursor = Math.max(0, this.entries().findIndex((x) => !x.row && x.group.id === g.id)); this.keepListCursorVisible(); };
     const reset = () => { L.cursor = 0; this.y = 0; };
+    // Marked rows in list order; a mark on a PR that left the list (merged, closed) is ignored.
+    const marked = (L.rows ?? []).filter((r) => L.marked.has(r.key));
     if (k === "j" || k === "down") { L.cursor = Math.min(ents.length - 1, L.cursor + 1); this.keepListCursorVisible(); }
     else if (k === "k" || k === "up") { L.cursor = Math.max(0, L.cursor - 1); this.keepListCursorVisible(); }
     else if (k === "shift-g" || ch === "G") { L.cursor = Math.max(0, ents.length - 1); this.keepListCursorVisible(); }
@@ -925,10 +1058,16 @@ export default class PRs extends View {
     else if ((k === "shift-d" || ch === "D") && cur) { this.openFromList(cur, cx); this.openDiff(null, cx); }
     else if (k === "c" && cur) { this.openFromList(cur, cx); this.view = "threads"; }
     else if (k === "o" && cur) this.openUrl(cur.url);
+    else if (k === "x" && cur) { L.marked.has(cur.key) ? L.marked.delete(cur.key) : L.marked.add(cur.key); L.cursor = Math.min(ents.length - 1, L.cursor + 1); this.keepListCursorVisible(); }
+    else if (k === "y" && marked.length) { cx.write_to_clipboard(marked.map((r) => `- ${r.repo}: ${r.url}`).join("\n")); L.marked.clear(); this.flash(`${plural(marked.length, "URL")} copied`, cx, 2000); }
     else if (k === "y" && cur) this.copy(cur.url, cx);
     else if (k === "shift-r" || ch === "R") { this.loadList(cx); }
+    else if ((k === "shift-m" || ch === "M") && (marked.length || cur)) { const why = this.askMergeRows(marked.length ? marked : [cur]); if (why) this.flash(why, cx); }
+    else if ((k === "shift-w" || ch === "W") && marked.length) { const why = this.askReadyMarked(marked); if (why) this.flash(why, cx); }
+    else if ((k === "shift-w" || ch === "W") && cur) { if (cur.draft) this.askReady(cur); else this.flash(`#${cur.number} is not a draft`, cx); }
     else if (k === "a") this.switchProfile(cx);
     // esc resets the filters to the default (needs review on); from the default it leaves the pane.
+    else if (k === "escape" && L.marked.size) L.marked.clear();
     else if (k === "escape") { if (L.person || L.search || !L.needs) { L.person = null; L.search = ""; L.needs = true; reset(); } else this.back(); }
     else if (k === "q") this.closePane();
     else return false;
@@ -1067,6 +1206,7 @@ export default class PRs extends View {
     else if (k === "x") { this.view = "checks"; this.y = 0; }
     else if (k === "v") this.startReview();
     else if (k === "shift-m" || ch === "M") this.askMerge();
+    else if (k === "shift-w" || ch === "W") this.askReady();
     else if (ch === ":") this.startCompose("ask", {}, cx);
     else if (k === "a") this.startCompose("general", {}, cx);
     else if (k === "o") this.openUrl(this.prUrl());
@@ -1210,6 +1350,7 @@ export default class PRs extends View {
     else if (k === "enter" || k === "l") { if (cur) this.loadLog(cur, cx); }
     else if (k === "shift-r" || ch === "R") { if (cur) this.askRerun(cur); }
     else if (k === "o") { if (cur?.url) this.openUrl(cur.url); }
+    else if (k === "i") this.investigateCheck(cur, cx);
     else if (ch === ":") { if (cur?.job && !C.log) this.loadLog(cur, cx).then(() => { this.view = "checks"; this.startCompose("ask", {}, cx); (this.acx ?? cx).notify(); }); else this.startCompose("ask", {}, cx); }
     else if (k === "r") this.load(cx);
     else if (k === "escape" || k === "x" || k === "h") { this.view = "pr"; this.y = 0; }
@@ -1222,6 +1363,7 @@ export default class PRs extends View {
     if (this.keyScroll(e, cx)) return true;
     if (k === "escape" || k === "h" || k === "enter") { this.view = "checks"; this.y = 0; }
     else if (k === "o") { const cur = this.pr?.checks?.[this.checks.cursor]; if (cur?.url) this.openUrl(cur.url); }
+    else if (k === "i") this.investigateCheck(this.pr?.checks?.[this.checks.cursor], cx);
     else if (e.key_char === ":") this.startCompose("ask", {}, cx);
     else if (k === "q") this.closePane();
     else return false;
@@ -1293,11 +1435,12 @@ export default class PRs extends View {
     const fromList = this.returnTo === "list" || this.view === "list";
     return [
       ["list", "LIST", [["j/k", "move"], ["d/u", "half page"], ["G", "end"], ["enter/l", "open the PR"], ["h", "fold group"], ["H/L", "fold all, open all"],
-        this.multi() ? ["1-9", `account: ${this.profiles.join(" / ")}`] : ["1 2", `${this.setName} / all repos`], ["g", "group by repo / attention"], ["r", "needs my review"], ["m", "mine"], ["n", "needs review on / off (on by default: hides drafts and approved)"],
-        ["@", "pick a person"], ["/", "search"], ["esc", "reset filters"], ["b", "show bots"], ["D", "open the diff"], ["c", "open the conversation"], ["o", "open in browser"], ["R", "refresh"], ["a", "next account (profiles in local.json)"], ["e", "choose this account's repos"]]],
+        this.multi() ? ["1-9", `account: ${this.profiles.join(" / ")}`] : ["1 2", `${this.setName} / all repos`], ["g", "group by repo / attention"], ["r", "needs my review"], ["m", "mine"], ["n", "needs review on / off (hides drafts, approved)"],
+        ["@", "pick a person"], ["/", "search"], ["esc", "reset filters"], ["b", "show bots"], ["D", "open the diff"], ["c", "open the conversation"], ["o", "open in browser"], ["R", "refresh"], ["W", "draft: ready for review"],
+        ["M", "squash merge"], ["x", "mark / unmark (y, W, M act on marked)"], ["a", "next account (profiles in local.json)"], ["e", "choose this account's repos"]]],
       ["pr", "PR", [...(fromList ? [["esc/h", "back to the list"], ["n/N", "next, previous PR"]] : [["esc/h", "back"], ["L", "the list"]]),
         ["j/k d/u", "scroll"], ["gg/G", "top, end"], ["enter/D", "diff"], ["f", "files"], ["c", "conversation"], ["a", "new comment"], ["x", "checks"],
-        ["v", "review: approve or request changes"], ["M", "squash merge"], [":", "ask Claude"], ["o", "open in browser"], ["r", "refresh"]]],
+        ["v", "review: approve or request changes"], ["M", "squash merge"], ["W", "draft: ready for review"], [":", "ask Claude"], ["o", "open in browser"], ["r", "refresh"]]],
       ["repos", "REPOS", [["j/k", "move"], ["d/u", "half page"], ["g/G", "top, end"], ["space/x", "check / uncheck"], ["A", "check / uncheck every shown repo"], ["c", "uncheck all (list shows all repos)"],
         ["/", "filter by name"], ["enter/s", "save to local.json and go back"], ["esc/h", "back without saving"]]],
       ["files", "FILES", [["j/k", "move"], ["d/u", "half page"], ["g/G", "top, end"], ["enter/l", "diff of the file"], ["D", "diff from here"], ["x", "mark viewed"],
@@ -1306,25 +1449,25 @@ export default class PRs extends View {
         ["c", "comment on the line"], ["x", "mark file viewed"], ["v", "review"], ["f", "files"], ["o", "open in browser"], ["r", "refresh"], ["esc/h", "back"]]],
       ["threads", "CONVERSATION", [["j/k", "thread"], ["d/u", "half page"], ["g/G", "top, end"], ["enter", "reply"], ["a", "new comment"], ["R", "resolve / unresolve"],
         ["+", "👍"], ["e", "pick a reaction"], ["h/l", "fold thread"], ["D", "diff of the thread"], ["o", "open in browser"], ["r", "refresh"], ["esc/c", "back"]]],
-      ["checks", "CHECKS", [["j/k", "move"], ["d/u", "jump 4"], ["enter/l", "job log"], ["R", "re-run"], ["o", "open the run"], [":", "ask Claude"], ["r", "refresh"], ["esc/h/x", "back"]]],
-      ["log", "JOB LOG", [["j/k d/u", "scroll"], ["gg/G", "top, end"], ["o", "open the run"], [":", "ask Claude"], ["esc/h", "back"]]],
+      ["checks", "CHECKS", [["j/k", "move"], ["d/u", "jump 4"], ["enter/l", "job log"], ["R", "re-run"], ["o", "open the run"], ["i", "send the check to Claude to look into"], [":", "ask Claude"], ["r", "refresh"], ["esc/h/x", "back"]]],
+      ["log", "JOB LOG", [["j/k d/u", "scroll"], ["gg/G", "top, end"], ["o", "open the run"], ["i", "send the check to Claude to look into"], [":", "ask Claude"], ["esc/h", "back"]]],
       ["review", "REVIEW", [["j/k 1-3", "verdict: approve, request changes, comment"], ["enter", "send the verdict (asks y/n)"], ["c/tab/i", "write a comment to go with it"], ["enter", "in the comment: send with it (asks y/n)"], ["shift-enter", "new line in the comment"], ["esc/tab", "from the comment back to the verdict"], ["x", "drop the last pending line comment"], ["esc/v", "back"]]],
       ["any", "ANYWHERE", [["?", "this sheet"], ["y", "copy the URL"], ["z", "zoom the pane"], ["q", "close the pane"], ["y / n", "answer a confirm"]]],
     ];
   }
   // The footer: the keys used most in this view, then ? for the rest.
   shortHints(v) {
-    const fromList = this.returnTo === "list";
+    const fromList = this.returnTo === "list"; const L = this.list;
     const more = ["?", "all keys"];
     return {
       repos: this.repos?.filtering ? [["type", "filter"], ["enter", "keep"], ["esc", "clear"]] : [["j/k", "move"], ["space", "check"], ["A", "all shown"], ["/", "filter"], ["enter", "save"], ["esc", "back"], more],
-      list: [["j/k", "move"], ["enter", "open"], ["n", this.list.needs ? "show all" : "needs review"], ["r", "for me"], ["/", "search"], ["R", "refresh"], ["e", "repos"], more],
-      pr: [["esc", fromList ? "list" : "back"], ...(fromList ? [["n/N", "next, prev"]] : []), ["enter", "diff"], ["c", "talk"], ["v", "review"], ["M", "merge"], more],
+      list: [["j/k", "move"], ["enter", "open"], ["n", this.list.needs ? "show all" : "needs review"], ["r", "for me"], ["/", "search"], ["x", "mark"], ...(L.marked.size ? [["y", "copy marked"], ["W", "ready marked"], ["M", "merge marked"]] : []), ["R", "refresh"], ["e", "repos"], more],
+      pr: [["esc", fromList ? "list" : "back"], ...(fromList ? [["n/N", "next, prev"]] : []), ["enter", "diff"], ["c", "talk"], ["v", "review"], ["M", "merge"], ...(this.pr?.draft ? [["W", "ready"]] : []), more],
       files: [["j/k", "move"], ["enter", "diff"], ["x", "viewed"], ["esc", "back"], more],
       diff: [["j/k", "line"], ["n/N", "hunk"], ["] [", "file"], ["c", "comment"], ["v", "review"], ["esc", "back"], more],
       threads: this.reactPick != null ? [["h/l", "pick"], ["enter", "toggle"], ["esc", "close"]] : [["j/k", "thread"], ["enter", "reply"], ["a", "new"], ["R", "resolve"], ["esc", "back"], more],
-      checks: [["j/k", "move"], ["enter", "log"], ["R", "re-run"], [":", "ask Claude"], ["esc", "back"], more],
-      log: [["j/k d/u", "scroll"], [":", "ask Claude"], ["esc", "back"], more],
+      checks: [["j/k", "move"], ["enter", "log"], ["R", "re-run"], ["o", "browser"], ["i", "Claude: look into it"], [":", "ask Claude"], ["esc", "back"], more],
+      log: [["j/k d/u", "scroll"], ["o", "browser"], ["i", "Claude: look into it"], [":", "ask Claude"], ["esc", "back"], more],
       review: this.review?.inSummary ? [["enter", "send with comment"], ["shift-enter", "new line"], ["esc", "verdict"]] : [["j/k 1-3", "verdict"], ["enter", "send"], ["c", "with a comment"], ["esc", "back"], more],
       confirm: [["y", "send to GitHub"], ["n / esc", "back"]],
       comment: [["enter", this.compose?.postNow ? "post now" : "add to review"], ["shift-enter", "new line"], ["tab", "post now / review"], ["esc", "discard"]],
@@ -1351,11 +1494,15 @@ export default class PRs extends View {
   checkDot(t, state) { return div().size(7).flex_none().rounded(4).bg(state === "pass" ? t.done : state === "fail" ? t.blocked : state === "pending" ? t.working : t.border); }
   decisionPill(t, r) {
     if (r.draft) return this.pill(t, "draft", t.dim, true);
+    if (r.mergeable === "CONFLICTING") return this.pill(t, "conflicts", t.blocked);
+    if (this.readyToMerge(r)) return this.pill(t, "ready", t.accent);
     if (r.decision === "APPROVED") return this.pill(t, "approved", t.done);
     if (r.decision === "CHANGES_REQUESTED") return this.pill(t, "changes", t.blocked);
     if (r.decision === "REVIEW_REQUIRED") return this.pill(t, "review", t.working);
     return r.lite ? null : this.pill(t, "no review", t.dim, true);
   }
+  // Approved, every check passed, no conflicts. GitHub may still say UNKNOWN for mergeable until it has computed it.
+  readyToMerge(r) { return !r.lite && !r.draft && r.decision === "APPROVED" && r.checks === "pass" && r.mergeable !== "CONFLICTING"; }
   colorOf(t, name) { return t[name] ?? t.muted; }
   safe(t, label, build) { try { return build(); } catch (e) { return div().text_size(12).text_color(t.blocked).child(`${label}: ${errText(e)}`); } }
   md(t, id, text) { return text ? TextView.markdown(id, text).selectable(true) : div().text_color(t.dim).child("(empty)"); }
@@ -1377,6 +1524,7 @@ export default class PRs extends View {
     const forMe = rows.filter((r) => !r.bot && this.forMe(r)).length;
     const mine = rows.filter((r) => !r.bot && this.isMine(r)).length;
     const drafts = rows.filter((r) => !r.bot && r.draft).length;
+    const ready = rows.filter((r) => !r.bot && this.readyToMerge(r)).length;
     const needs = rows.filter((r) => !r.bot && this.needsReview(r)).length;
     const filterLabel = [L.person ? this.personLabel() : null, L.needs ? "needs review" : null].filter(Boolean).join(" · ");
     const status = h_flex().flex_none().gap(12).items_center().px(14).py(5).text_size(11).text_color(t.dim).border_b(1).border_color(t.border)
@@ -1384,7 +1532,9 @@ export default class PRs extends View {
       .child(h_flex().gap(4).child(div().text_color(t.accent).child(String(mine))).child(div().child("mine")))
       .child(h_flex().gap(4).child(div().text_color(L.needs ? t.accent : t.dim).child(String(needs))).child(div().child("need review")))
       .child(h_flex().gap(4).child(div().child(String(drafts))).child(div().child("drafts")))
+      .child(h_flex().gap(4).child(div().text_color(ready ? t.accent : t.dim).child(String(ready))).child(div().child("ready to merge")))
       .when(L.enriching > 0, (el) => el.child(div().text_color(t.working).child(`details for ${L.enriching} repos…`)))
+      .when(L.marked.size > 0, (el) => el.child(div().text_color(t.accent).child(`${L.marked.size} marked · y copies · W readies · M merges · esc clears`)))
       .child(div().flex_1())
       .child(div().text_color(filterLabel ? t.accent : t.dim).child(filterLabel ? `filter: ${filterLabel}` : "everyone · @ to filter · n needs review"));
     const search = L.searching || L.search
@@ -1409,16 +1559,17 @@ export default class PRs extends View {
       const extra = g.id === "automated" ? (() => { const by = new Map(); for (const r of g.rows) { const n = r.author.replace(/^app\//, "").replace(/\[bot\]$/, ""); by.set(n, (by.get(n) ?? 0) + 1); } return [...by.entries()].map(([n, c]) => `${n} ${c}`).join(" · ") + (folded ? " · b shows" : ""); })() : null;
       body.child(h_flex().id(`grp-${g.id}`).gap(8).items_baseline().px(6).mt(6).h(26).rounded(6).text_size(10.5).font_semibold().text_color(color)
         .when(hi, (el) => el.bg(t.raised).border_1().border_color(t.accent)).cursor_pointer().hover((s) => s.bg(t.hover))
-        .on_click((_e, cx) => { L.cursor = hIndex; folded ? L.folded.delete(g.id) : L.folded.add(g.id); cx.notify(); })
+        .on_click((_e, cx) => { L.cursor = hIndex; folded ? L.folded.delete(g.id) : L.folded.add(g.id); this.saveView(); cx.notify(); })
         .child(div().child(folded ? "▸" : "▾")).child(div().child(g.label.toUpperCase())).child(div().font_normal().text_color(t.dim).child(String(g.rows.length)))
         .child(div().flex_1())
         .when(Boolean(extra), (el) => el.child(div().font_normal().text_color(t.dim).child(extra)))
         .when(!extra && folded, (el) => el.child(div().font_normal().text_color(t.dim).child(hi ? "enter opens" : "folded"))));
       if (folded) continue;
       for (const r of g.rows) {
-        const i = index++; const cur = i === L.cursor;
+        const i = index++; const cur = i === L.cursor; const mk = L.marked.has(r.key);
         this.listTop.push(top); top += ROW + 2;
-        const pill = this.decisionPill(t, r);
+        const busy = this.working?.get(r.key);
+        const pill = busy ? this.pill(t, `${busy}…`, t.working) : this.decisionPill(t, r);
         const dimmed = r.draft || r.bot;
         const meta = h_flex().gap(8).items_center().text_size(11).text_color(t.dim).whitespace_nowrap().overflow_hidden()
           .when(L.byRepo === false, (el) => el.child(div().text_color(dimmed ? t.dim : t.muted).child(r.repo)))
@@ -1428,10 +1579,11 @@ export default class PRs extends View {
           .when(r.add != null, (el) => el.child(div().text_color(dimmed ? t.dim : t.done).child(`+${r.add}`)).child(div().text_color(dimmed ? t.dim : t.blocked).child(`−${r.del}`)).child(div().child(plural(r.files, "file"))))
           .when(r.lite && r.comments > 0, (el) => el.child(div().child(plural(r.comments, "comment"))))
           .when(Boolean(r.base) && !/^(dev|main|master)$/.test(r.base), (el) => el.child(div().child(`→ ${r.base}`)));
-        body.child(v_flex().id(`row-${r.key}`).h(ROW).gap(3).px(8).py(6).rounded(6).border_1().border_color(cur ? t.accent : t.background + "00")
-          .when(cur, (el) => el.bg(t.raised)).hover((s) => s.bg(t.hover))
+        body.child(v_flex().id(`row-${r.key}`).h(ROW).gap(3).px(8).py(6).rounded(6).border_1().border_color(cur ? t.accent : mk ? t.accent + "66" : t.background + "00")
+          .when(cur, (el) => el.bg(t.raised)).when(mk && !cur, (el) => el.bg(t.accent + "14")).hover((s) => s.bg(t.hover))
           .on_click((_e, cx) => { L.cursor = i; this.openFromList(r, cx); })
           .child(h_flex().gap(8).items_center()
+            .when(mk, (el) => el.child(div().text_size(12).text_color(t.accent).font_semibold().child("✓")))
             .child(div().flex_1().min_w(0).truncate().text_size(12.5).text_color(cur ? t.foreground : dimmed ? t.dim : t.muted).child(r.title))
             .when(!r.lite, (el) => el.child(this.checkDot(t, r.checks)))
             .when(Boolean(pill), (el) => el.child(pill)))
@@ -1461,6 +1613,7 @@ export default class PRs extends View {
     return v_flex().gap(4)
       .child(h_flex().gap(8).items_baseline().text_size(12).text_color(t.dim)
         .child(div().child(`${this.repo} #${this.number}`))
+        .when(this.working?.has(this.key_()), (el) => el.child(this.pill(t, `${this.working?.get(this.key_())}…`, t.working)))
         .when(p.draft, (el) => el.child(this.pill(t, "draft", t.dim, true)))
         .when(p.merged, (el) => el.child(this.pill(t, "merged", t.accent)))
         .when(p.state === "CLOSED" && !p.merged, (el) => el.child(this.pill(t, "closed", t.blocked))))
@@ -1701,13 +1854,14 @@ export default class PRs extends View {
 
   confirmBody(t) {
     const c = this.confirm; const red = t.blocked;
-    return v_flex().gap(14).child(this.pr ? this.prHeader(t, true) : div())
+    return v_flex().gap(14).child(this.pr && c.back !== "list" ? this.prHeader(t, true) : div())
       .child(v_flex().gap(6).px(12).py(8).rounded(7).border_1().border_color(red).bg(red + "14")
         .child(h_flex().gap(8).items_center().child(div().text_color(t.foreground).child(c.title)).child(div().flex_1())
           .child(div().px(6).rounded(4).bg(red).text_color(t.background).font_medium().child("y")).child(div().text_color(t.dim).child("/")).child(div().px(6).rounded(4).border_1().border_color(t.border).text_color(t.muted).child("n")))
         .children(c.lines.map((l) => div().text_size(12).text_color(t.muted).child(l)))
         .child(div().text_size(11).text_color(t.dim).child("Nothing is sent until you press y.")))
-      .when(Boolean(this.busy), (el) => el.child(div().text_size(12).text_color(t.working).child(`${this.busy}…`)));
+      .when(Boolean(this.busy), (el) => el.child(div().text_size(12).text_color(t.working).child(`${this.busy}…`)))
+      .when(Boolean(this.error) && !this.pr, (el) => el.child(div().text_size(12).text_color(t.blocked).child(this.error)));
   }
 
   composeBody(t) {
@@ -1768,8 +1922,9 @@ export default class PRs extends View {
       .child(div().child(v === "repos" ? `PRs · ${this.profileName ?? this.owner} · Repos` : v === "list" ? `PRs · ${this.multi() ? `${this.profileName} · ${this.account ?? "active gh account"}` : this.list.scope === "set" ? this.setName : "all repos"}` : `${crumb ? "" : "PRs · "}${this.repo} #${this.number}${titles[v] ?? ""}`))
       .when(Boolean(pos), (el) => el.child(div().text_color(t.dim).child(`${pos} · n/N`)))
       .child(div().flex_1())
+      .when(this.jobs > 0, (el) => el.child(div().text_color(t.working).child(`${plural(this.jobs, "action")} running…`)))
       .when(Boolean(this.busy), (el) => el.child(div().text_color(t.working).child(`${this.busy}…`)))
-      .when(!this.busy && Boolean(this.toast), (el) => el.child(div().text_color(t.done).child(this.toast)))
+      .when(!this.busy && Boolean(this.toast), (el) => el.child(div().text_color(this.toastBad ? t.blocked : t.done).child(this.toast)))
       .when(!this.busy && !this.toast && updated > 0, (el) => el.child(div().text_color(t.dim).child(`updated ${Math.max(0, Math.round((Date.now() - updated) / 60000))}m ago`)))
 
     // The frame is the visible window: its own measured height is what keep-cursor-visible and paging use,
@@ -1789,6 +1944,7 @@ export default class PRs extends View {
 
     let body;
     if (v === "repos") body = this.reposBody(t);
+    else if (v === "confirm") body = this.confirmBody(t); // may come from the list, with no PR open
     else if (!this.pr && this.notConfigured()) body = this.setupBody(t);
     else if (!this.pr) body = div().text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…");
     else if (v === "files") body = this.filesBody(t);
@@ -1797,7 +1953,6 @@ export default class PRs extends View {
     else if (v === "checks") body = this.checksBody(t);
     else if (v === "log") body = this.logBody(t);
     else if (v === "review") body = this.reviewBody(t);
-    else if (v === "confirm") body = this.confirmBody(t);
     else if (v === "comment" || v === "compose" || v === "ask") body = this.composeBody(t);
     else body = this.prBody(t);
     body = this.safe(t, v, () => body);
