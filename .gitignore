@@ -82,6 +82,8 @@ herdr-app/mods/*
 !herdr-app/mods/my-leader/
 !herdr-app/mods/my-prs/
 !herdr-app/mods/my-tickets/
+!herdr-app/mods/my-speed/
+!herdr-app/mods/my-palette/
 # work-specific config for my-* mods stays local
 herdr-app/mods/my-*/local.json
 herdr-app/mods/my-*/*.d.ts

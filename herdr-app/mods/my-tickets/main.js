@@ -22,7 +22,7 @@
 // Keys (compose):  type; @ opens the people picker (j k pick, tab/enter insert); ctrl-enter post; esc discard
 //
 // Config: mods/my-tickets/local.json (gitignored), overridden by --props. Without org and project the pane says so.
-//   { "org": "https://dev.azure.com/<org>", "project": "<project>", "machine": "wsl",
+//   { "org": "https://dev.azure.com/<org>", "project": "<project>", "machine": "wsl" (or "local"),
 //     "orchSpace": "<space>", "orchTab": "orchestrator", "parent": "<folder for a new orchestrator>", "deploySkill": "<skill>" }
 
 import { View, div, image } from "gpui-kit";
@@ -89,7 +89,21 @@ const name = (v) => (v && typeof v === "object" ? v.displayName : v) ?? "";
 const idOf = (v) => (v && typeof v === "object" ? v.id : null);
 
 // C:\Users\x\.config\herdr-app -> /mnt/c/Users/x/.config/herdr-app
-const toWsl = (p) => p.replace(/^([A-Za-z]):[\\/]/, (_, d) => `/mnt/${d.toLowerCase()}/`).replace(/\\/g, "/");
+const isWin = () => /^[A-Za-z]:[\\/]/.test(appHome());
+const shq = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`;
+// base64 text (whitespace ignored) to bytes: images come back from the az machine this way.
+function fromBase64(text) {
+  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const map = new Int16Array(128).fill(-1); for (let i = 0; i < 64; i++) map[A.charCodeAt(i)] = i;
+  const clean = text.replace(/[^A-Za-z0-9+/]/g, "");
+  const out = new Uint8Array(Math.floor((clean.length * 3) / 4));
+  let o = 0, buf = 0, bits = 0;
+  for (let i = 0; i < clean.length; i++) {
+    buf = (buf << 6) | map[clean.charCodeAt(i)]; bits += 6;
+    if (bits >= 8) { bits -= 8; out[o++] = (buf >> bits) & 255; }
+  }
+  return out.subarray(0, o);
+}
 
 function when(iso) {
   if (!iso) return "";
@@ -216,7 +230,7 @@ export default class Tickets extends View {
     const c = { ...local, ...this.props };
     this.org = c.org ? String(c.org).replace(/\/+$/, "") : null;
     this.project = c.project ?? null;
-    this.machine = c.machine ?? "wsl";
+    this.machine = c.machine === "local" ? null : (c.machine ?? "wsl"); // "local": this computer
     // Where deploys go: the orchestrator Claude session, and the folder a new one starts in.
     this.orchSpace = c.orchSpace ?? null;
     this.orchTab = c.orchTab ?? "orchestrator";
@@ -224,10 +238,57 @@ export default class Tickets extends View {
     this.deploySkill = c.deploySkill ?? null;
   }
   async readConfig() {
-    try { this.configure(JSON.parse((await readTextFile(`${appHome()}/mods/my-tickets/local.json`)) ?? "{}")); }
-    catch (e) { this.configError = `local.json: ${String(e?.message ?? e)}`; }
+    this.configPath = `${appHome()}/mods/my-tickets/local.json`.replace(/\\/g, "/");
+    let text = null;
+    try { text = await readTextFile(this.configPath); } catch { text = null; }
+    this.configFound = text != null;
+    try { this.configure(JSON.parse(text ?? "{}")); }
+    catch (e) { this.configError = `local.json isn't valid JSON: ${String(e?.message ?? e)}`; }
   }
-  notConfigured() { return this.configError ?? (this.org && this.project ? null : "No Azure DevOps org/project: set org and project in mods/my-tickets/local.json"); }
+  notConfigured() {
+    if (this.configError) return this.configError;
+    if (this.org && this.project) return null;
+    if (!this.configFound) return "local.json is missing";
+    const missing = [!this.org && `"org"`, !this.project && `"project"`].filter(Boolean);
+    return `local.json has no ${missing.join(" or ")}`;
+  }
+  // While unconfigured, re-read local.json every 2s, so saving it brings the pane up.
+  retryConfig(cx) {
+    if (this.configRetry) return;
+    this.configRetry = true;
+    cx.timer.after(2000, async (cx) => {
+      this.configRetry = false;
+      this.configError = null;
+      await this.readConfig();
+      if (this.notConfigured()) { cx.notify(); this.retryConfig(cx); }
+      else if (this.id) this.load(cx); else this.loadList(cx);
+    });
+  }
+  // Shown in place of the list or item while notConfigured(): what's wrong, where the file goes, and what it takes.
+  setupBody(t) {
+    const text = (s, c) => div().text_color(c ?? t.dim).child(s);
+    const field = (k, required, what) => h_flex().gap(10).items_start()
+      .child(div().w(96).flex_none().text_color(required ? t.accent : t.foreground).child(k))
+      .child(div().flex_1().min_w(0).text_color(t.dim).child(`${required ? "required" : "optional"} · ${what}`));
+    const example = ["{", `  "org": "https://dev.azure.com/my-org",`, `  "project": "My Project",`, `  "machine": "local"`, "}"];
+    return v_flex().gap(6).px(8).py(16).text_size(12)
+      .child(text(`Tickets isn't set up: ${this.notConfigured()}`, t.blocked))
+      .child(text("Create this file. It's gitignored, so each machine needs its own copy:"))
+      .child(text(this.configPath ?? "mods/my-tickets/local.json", t.foreground))
+      .child(div().h(4))
+      .child(field("org", true, "Azure DevOps org URL, e.g. https://dev.azure.com/my-org"))
+      .child(field("project", true, "Azure DevOps project name"))
+      .child(field("machine", false, `machine whose az CLI is signed in: a machine name, or "local" for this one (default "wsl")`))
+      .child(field("orchSpace", false, "space of the orchestrator Claude that d deploys to"))
+      .child(field("orchTab", false, `that orchestrator's tab (default "orchestrator")`))
+      .child(field("parent", false, "folder a new orchestrator starts in"))
+      .child(field("deploySkill", false, "skill the orchestrator runs on a deploy"))
+      .child(div().h(4))
+      .child(text("Example:"))
+      .child(v_flex().text_color(t.foreground).children(example.map((l) => div().child(l))))
+      .child(div().h(4))
+      .child(text("This pane checks the file every 2s and loads once it's right."));
+  }
 
   focus() {
     if (this.compose && !this.compose.picker) this.compose.state.focus();
@@ -271,7 +332,7 @@ export default class Tickets extends View {
   async loadList(cx) {
     cx = this.acx ?? cx;
     const missing = this.notConfigured();
-    if (missing) { this.error = missing; this.busy = null; cx.notify(); return; }
+    if (missing) { this.error = missing; this.busy = null; cx.notify(); this.retryConfig(cx); return; }
     this.busy = "fetching"; this.error = null; cx.notify();
     try {
       await this.loadIterations();
@@ -452,7 +513,7 @@ export default class Tickets extends View {
     cx = this.acx ?? cx;
     if (!this.id) return;
     const missing = this.notConfigured();
-    if (missing) { this.error = missing; this.busy = null; cx.notify(); return; }
+    if (missing) { this.error = missing; this.busy = null; cx.notify(); this.retryConfig(cx); return; }
     this.busy = "fetching"; this.error = null; cx.notify();
     try {
       const w = await this.az(["boards", "work-item", "show", "--id", String(this.id), "--organization", this.org]);
@@ -506,9 +567,11 @@ export default class Tickets extends View {
         const file = `${home}/${rel}`.replace(/\\/g, "/");
         try {
           if (await fs.exists(file)) { entry.status = "ready"; cx.notify(); return; }
-          const dir = toWsl(`${home}/cache/tickets`);
-          const r = await exec("sh", ["-c", `mkdir -p "${dir}" && az rest --method get --resource ${ADO_RESOURCE} --url "${img.url}" --output-file "${dir}/${img.guid}.${ext}"`], { on: this.machine, timeout: 60000 });
+          // Downloaded where az runs and sent back as base64, so it lands here whichever machine az is on.
+          const r = await exec("sh", ["-c", `t=$(mktemp) && az rest --method get --resource ${ADO_RESOURCE} --url ${shq(img.url)} --output-file "$t" >/dev/null && base64 < "$t"; c=$?; rm -f "$t"; exit $c`], { on: this.machine, timeout: 60000 });
           if (r.code !== 0) throw new Error(lastLine(r.stderr) || "download failed");
+          await fs.mkdir(`${home}/cache/tickets`.replace(/\\/g, "/"), { recursive: true });
+          await fs.writeFile(file, fromBase64(r.stdout));
           entry.status = "ready";
         } catch (e) {
           entry.status = "error"; entry.error = errText(e);
@@ -774,7 +837,7 @@ export default class Tickets extends View {
     if (top < this.y) this.scrollTo(top - 8, cx);
     else if (top + h > this.y + this.viewH) this.scrollTo(top + h - this.viewH + 8, cx);
   }
-  openUrl(url) { exec("cmd", ["/c", "start", "", url]); }
+  openUrl(url) { if (isWin()) exec("cmd", ["/c", "start", "", url]); else exec("open", [url]); }
   // Close this mod's own pane, never a terminal: a `q` delivered from the command line arrives while
   // the terminal has focus, and closing the focused pane there would kill the Claude session.
   closePane() {
@@ -838,7 +901,7 @@ export default class Tickets extends View {
     else if (ch === ":") this.startCompose("ask", null, cx);
     else if (k === "e") this.explain(cx);
     else if (k === "o") this.openUrl(this.itemUrl());
-    else if (k === "shift-o" || ch === "O") { const first = [...this.images.values()].find((i) => i.status === "ready"); if (first) this.openUrl(`${appHome()}/${first.path}`.replace(/\//g, "\\")); }
+    else if (k === "shift-o" || ch === "O") { const first = [...this.images.values()].find((i) => i.status === "ready"); if (first) { const f = `${appHome()}/${first.path}`; this.openUrl(isWin() ? f.replace(/\//g, "\\") : f.replace(/\\/g, "/")); } }
     else if (k === "y") { cx.write_to_clipboard(this.itemUrl()); this.toast = "URL copied"; cx.timer.after(2000, (cx) => { this.toast = null; cx.notify(); }); }
     else if (k === "r") this.load(cx);
     else if (k === "escape" || k === "h") { if (fromList) this.backToList(); else this.back(); }
@@ -1290,7 +1353,8 @@ export default class Tickets extends View {
     this.listTop = [];
     let index = 0; // position in entries(): headers and rows alike
     const body = v_flex().gap(2).px(10).py(8);
-    if (!L.rows) body.child(div().px(8).py(20).text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…"));
+    if (!L.rows && this.notConfigured()) body.child(this.setupBody(t));
+    else if (!L.rows) body.child(div().px(8).py(20).text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…"));
     else if (L.person === "me" && !this.me) body.child(div().px(8).py(20).text_color(t.dim).child("Finding your sign-in…"));
     else if (!groups.length) body.child(div().px(8).py(20).text_color(t.dim).child("Nothing matches."));
     for (const g of groups) {
@@ -1421,7 +1485,8 @@ export default class Tickets extends View {
     }
 
     let body;
-    if (!this.item && v !== "confirm") body = div().text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…");
+    if (!this.item && v !== "confirm" && this.notConfigured()) body = this.setupBody(t);
+    else if (!this.item && v !== "confirm") body = div().text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…");
     else if (v === "point") body = this.pointBody(t);
     else if (v === "state") body = this.stateBody(t);
     else if (v === "confirm") body = this.confirmBody(t);

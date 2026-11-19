@@ -9,9 +9,10 @@
 // checks (x) with the failed log, submit review (v), ask Claude (:). Every write to GitHub sits
 // behind a y/n row.
 //
-// Data comes from `gh` on this machine. The active gh account may be a personal one, so every call
-// goes through cache/prs/gh.cmd, which puts the work account's token (gh auth token -u <account>)
-// into GH_TOKEN first. Free text (comment bodies, GraphQL) travels in files, never on the command line.
+// Data comes from `gh` on this machine. The active gh account may be a personal one, so with an account set
+// every call first puts that account's token (gh auth token -u <account>) into GH_TOKEN: through
+// cache/prs/gh.cmd on Windows, through sh elsewhere. Free text (comment bodies, GraphQL) travels in files,
+// never on the command line.
 //
 // Keys (list):   j/k move   enter/l open   h/l fold   1 2 set / all   g by repo   r for me   m mine
 //                @ person   / search   b bots   D diff   c conversation   o browser   y copy URL   R refresh   q close
@@ -24,6 +25,9 @@
 // Config: mods/my-prs/local.json (gitignored), overridden by --props. Without an owner the list says so.
 //   { "owner": "<github org>", "account": "<gh login to use, or null for the active one>",
 //     "repos": ["repo-a", "repo-b"], "setName": "My repos", "loginSuffix": "-corp" }
+// Or several accounts, toggled with a in the list (the choice is remembered; "profile" is the first default):
+//   { "profile": "work", "profiles": { "work": { ...the fields above }, "personal": { "owner": "me", "account": "me" } } }
+// With profiles, the cached lists, PRs and sign-in are kept per profile.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, TextView, Textarea, TextareaState } from "gpui-base";
@@ -164,12 +168,12 @@ export default class PRs extends View {
     const have = fonts?.() ?? [];
     this.mono = ["JetBrains Mono", "Cascadia Mono", "Cascadia Code", "Consolas", "Menlo", "Courier New"].find((f) => have.includes(f)) ?? null;
     if (checking()) return;
-    try { this.me = localStorage.getItem("prs:me") || null; const t = localStorage.getItem("prs:teams"); if (t) this.teams = JSON.parse(t); } catch {}
+    try { this.me = localStorage.getItem(this.ns("prs:me")) || null; const t = localStorage.getItem(this.ns("prs:teams")); if (t) this.teams = JSON.parse(t); } catch {}
     this.cacheList();
     // The first load starts from a timer tick owned by this view: opened by a key in another mod (the leader's g),
     // init runs inside that mod's call and work started there belongs to the popup that closes right after.
     cx.timer.after(0, (cx) => {
-      this.readConfig().then(() => { if (this.number) { this.cachePr(); this.load(cx); } else this.loadList(cx); });
+      this.readConfig().then(() => { if (this.profileName) this.restoreCache(); if (this.number) { this.cachePr(); this.load(cx); } else this.loadList(cx); });
     }, { owner: this });
     cx.timer.every(300000, (cx) => { if (this.view === "list") this.loadList(cx); else if (this.pr && this.view === "pr") this.load(cx); });
     cx.spawn(async (cx) => {
@@ -189,7 +193,12 @@ export default class PRs extends View {
 
   // Work-specific settings live in local.json beside this file (gitignored); --props win over it.
   configure(local) {
-    const c = { ...local, ...this.props };
+    const profiles = local?.profiles && typeof local.profiles === "object" && !Array.isArray(local.profiles) ? local.profiles : null;
+    this.profiles = profiles ? Object.keys(profiles) : [];
+    let saved = null;
+    try { saved = localStorage.getItem("prs:profile"); } catch {}
+    this.profileName = profiles ? ([this.profileName, this.props.profile, saved, local.profile, this.profiles[0]].find((n) => n && profiles[n]) ?? null) : null;
+    const c = { ...(profiles ? profiles[this.profileName] : local), ...this.props };
     this.owner = c.owner ?? null;
     this.account = c.account ?? null; // null: the active gh account
     this.repoSet = Array.isArray(c.repos) ? c.repos : [];
@@ -197,14 +206,59 @@ export default class PRs extends View {
     LOGIN_SUFFIX = c.loginSuffix ?? null;
   }
   async readConfig() {
-    try { this.configure(JSON.parse((await readTextFile(`${appHome()}/mods/my-prs/local.json`)) ?? "{}")); }
-    catch (e) { this.configError = `local.json: ${errText(e)}`; }
+    this.configPath = `${appHome()}/mods/my-prs/local.json`.replace(/\\/g, "/");
+    let text = null;
+    try { text = await readTextFile(this.configPath); } catch { text = null; }
+    this.configFound = text != null;
+    try { this.configure(JSON.parse(text ?? "{}")); }
+    catch (e) { this.configError = `local.json isn't valid JSON: ${errText(e)}`; }
+    // Several accounts: the tabs pick the account, and each one shows its repo set, or all its repos without one.
+    // One account: no repo set means start on all repos instead of an empty tab.
+    const scope = this.multi() ? (this.repoSet.length ? "set" : "all") : (this.list?.scope === "set" && this.owner && !this.repoSet.length ? "all" : this.list?.scope);
+    if (this.list && scope !== this.list.scope) { this.list.scope = scope; this.cacheList(); }
   }
   notConfigured() {
     if (this.configError) return this.configError;
-    if (!this.owner) return "No GitHub org: set owner in mods/my-prs/local.json";
-    if (this.list.scope === "set" && !this.repoSet.length) return "No repo set: add repos to mods/my-prs/local.json (or press 2 for all repos)";
+    if (!this.owner) return !this.configFound ? "local.json is missing" : this.profileName ? `profile "${this.profileName}" has no "owner"` : `local.json has no "owner"`;
+    if (this.list.scope === "set" && !this.repoSet.length) return `local.json has no "repos" for this tab (press 2 for all repos)`;
     return null;
+  }
+  // While unconfigured, re-read local.json every 2s, so saving it brings the pane up.
+  retryConfig(cx) {
+    if (this.configRetry) return;
+    this.configRetry = true;
+    cx.timer.after(2000, async (cx) => {
+      this.configRetry = false;
+      this.configError = null;
+      await this.readConfig();
+      if (this.notConfigured()) { cx.notify(); this.retryConfig(cx); }
+      else if (this.number) this.load(cx); else this.loadList(cx);
+    });
+  }
+  // Shown in place of the list or PR while notConfigured(): what's wrong, where the file goes, and what it takes.
+  setupBody(t) {
+    const text = (s, c) => div().text_color(c ?? t.dim).child(s);
+    const field = (k, required, what) => h_flex().gap(10).items_start()
+      .child(this.mono_(div().w(96).flex_none().text_color(required ? t.accent : t.foreground).child(k)))
+      .child(div().flex_1().min_w(0).text_color(t.dim).child(`${required ? "required" : "optional"} · ${what}`));
+    const example = ["{", `  "profile": "work",`, `  "profiles": {`, `    "work": { "owner": "my-org", "account": "me-corp", "repos": ["api", "web"] },`, `    "personal": { "owner": "me", "account": "me" }`, `  }`, "}"];
+    return v_flex().gap(6).px(8).py(16).text_size(12)
+      .child(text(`PRs isn't set up: ${this.notConfigured()}`, t.blocked))
+      .child(text("Create this file. It's gitignored, so each machine needs its own copy:"))
+      .child(this.mono_(text(this.configPath ?? "mods/my-prs/local.json", t.foreground)))
+      .child(div().h(4))
+      .child(field("owner", true, "GitHub org or user whose open PRs to list"))
+      .child(field("repos", false, "repo names for tab 1 (the repo set); tab 2 lists every repo of owner"))
+      .child(field("setName", false, `label for tab 1 (default "Repos")`))
+      .child(field("account", false, "gh login to use (default: the active gh auth account)"))
+      .child(field("loginSuffix", false, `suffix stripped from logins when shown, e.g. "-corp"`))
+      .child(field("profiles", false, `several accounts: { "work": {...}, "personal": {...} }, each with the fields above; a toggles`))
+      .child(field("profile", false, "the profile to start on (later, the last one picked)"))
+      .child(div().h(4))
+      .child(text("Example:"))
+      .child(this.mono_(v_flex().text_color(t.foreground).children(example.map((l) => div().child(l || " ")))))
+      .child(div().h(4))
+      .child(text("This pane checks the file every 2s and loads once it's right."));
   }
 
   textFocused() { return Boolean(this.compose && !this.compose.picker) || Boolean(this.review?.inSummary); }
@@ -217,6 +271,33 @@ export default class PRs extends View {
 
   // ---- gh ---------------------------------------------------------------------
 
+  // localStorage key for this profile's copy of k (no prefix without profiles, so older caches still count).
+  ns(k) { return this.profileName ? `${this.profileName}:${k}` : k; }
+  isWin() { return /^[A-Za-z]:[\\/]/.test(appHome()); }
+  winPath(f) { return this.isWin() ? f.replace(/\//g, "\\") : f; }
+  // Back to the cached sign-in and list (or PR) of the current profile.
+  restoreCache() {
+    this.me = null; this.teams = null;
+    try { this.me = localStorage.getItem(this.ns("prs:me")) || null; const t = localStorage.getItem(this.ns("prs:teams")); if (t) this.teams = JSON.parse(t); } catch {}
+    if (this.number) this.cachePr(); else this.cacheList();
+  }
+  multi() { return (this.profiles?.length ?? 0) > 1; }
+  // 1-9 or a in the list: that profile (a: the next one) from local.json; its own owner, account, repos and caches.
+  switchProfile(cx, name) {
+    if (!this.multi()) { this.flash(`One account: add "profiles" to local.json to switch`, cx); return; }
+    const L = this.list;
+    const next = name ?? this.profiles[(this.profiles.indexOf(this.profileName) + 1) % this.profiles.length];
+    if (next === this.profileName) return;
+    this.profileName = next;
+    try { localStorage.setItem("prs:profile", this.profileName); } catch {}
+    this._ghCmd = null;
+    L.rows = null; L.people = null; L.forMe = new Set(); L.person = null; L.cursor = 0; L.fetchedAt = 0; this.y = 0; this.error = null;
+    this.readConfig().then(() => {
+      this.restoreCache();
+      this.flash(`Account: ${this.profileName}${this.account ? ` (${this.account})` : ""}`, cx, 2000);
+      this.loadList(cx);
+    });
+  }
   cacheDir() { return `${appHome()}/cache/prs`.replace(/\\/g, "/"); }
   async ghCmd() {
     if (this._ghCmd) return this._ghCmd;
@@ -233,8 +314,10 @@ export default class PRs extends View {
   }
   // Runs gh with the work account; the stdout, or throws the last stderr line.
   async gh(args, timeout = 60000) {
-    const cmd = await this.ghCmd();
-    const r = await exec("cmd", ["/c", cmd, ...args], { timeout });
+    let r;
+    if (this.isWin()) r = await exec("cmd", ["/c", await this.ghCmd(), ...args], { timeout });
+    // sh's $0 is the account ("" for the active one); gh and brew's bin may be missing from an app's PATH.
+    else r = await exec("sh", ["-c", `PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; if [ -n "$0" ]; then GH_TOKEN=$(gh auth token -u "$0") || exit 1; export GH_TOKEN; fi; exec gh "$@"`, this.account ?? "", ...args], { timeout });
     if (r.code !== 0) throw new Error(lastLine(r.stderr) || lastLine(r.stdout) || `gh exited ${r.code}`);
     return r.stdout;
   }
@@ -244,7 +327,7 @@ export default class PRs extends View {
     await fs.mkdir(dir, { recursive: true });
     const file = `${dir}/${name}`;
     await fs.writeFile(file, text);
-    return file.replace(/\//g, "\\");
+    return this.winPath(file);
   }
   async graphql(query, vars) {
     const q = await this.tmpFile(`q-${Date.now()}.graphql`, query);
@@ -262,7 +345,7 @@ export default class PRs extends View {
       this.me = u?.login ?? null;
       const t = await this.ghJson(["api", "user/teams", "--paginate"]);
       this.teams = (t ?? []).map((x) => x.slug);
-      try { localStorage.setItem("prs:me", this.me ?? ""); localStorage.setItem("prs:teams", JSON.stringify(this.teams)); } catch {}
+      try { localStorage.setItem(this.ns("prs:me"), this.me ?? ""); localStorage.setItem(this.ns("prs:teams"), JSON.stringify(this.teams)); } catch {}
     } catch {}
   }
   full(repo) { return `${this.owner}/${repo ?? this.repo}`; }
@@ -273,9 +356,9 @@ export default class PRs extends View {
 
   cacheList() {
     try {
-      const c = JSON.parse(localStorage.getItem(`list:${this.list.scope}`) ?? "null");
+      const c = JSON.parse(localStorage.getItem(this.ns(`list:${this.list.scope}`)) ?? "null");
       if (c) { this.list.rows = c.rows; this.list.fetchedAt = c.at; }
-      const f = JSON.parse(localStorage.getItem("forMe") ?? "null");
+      const f = JSON.parse(localStorage.getItem(this.ns("forMe")) ?? "null");
       if (f) this.list.forMe = new Set(f);
     } catch {}
   }
@@ -297,14 +380,14 @@ export default class PRs extends View {
     const L = this.list;
     const scope = L.scope;
     const missing = this.notConfigured();
-    if (missing) { this.error = missing; this.busy = null; cx.notify(); return; }
+    if (missing) { this.error = missing; this.busy = null; cx.notify(); this.retryConfig(cx); return; }
     this.busy = "fetching"; this.error = null; cx.notify();
     try {
       this.loadMe();
       // Needs my review: one search, GitHub resolves my teams. Runs alongside the rows.
       const forMe = this.ghJson(["search", "prs", "--review-requested=@me", "--owner", this.owner, "--state", "open", "--limit", "100", "--json", "number,repository"]).then((d) => {
         L.forMe = new Set((d ?? []).map((x) => `${x.repository?.name}#${x.number}`));
-        try { localStorage.setItem("forMe", JSON.stringify([...L.forMe])); } catch {}
+        try { localStorage.setItem(this.ns("forMe"), JSON.stringify([...L.forMe])); } catch {}
         cx.notify();
       }).catch(() => {});
       let rows;
@@ -322,7 +405,7 @@ export default class PRs extends View {
       L.rows = rows; L.fetchedAt = Date.now(); L.people = null;
       if (keep) { const i = this.entries().findIndex((e) => e.row?.key === keep); if (i >= 0) L.cursor = i; }
       this.clampListCursor();
-      try { localStorage.setItem(`list:${scope}`, JSON.stringify({ rows, at: L.fetchedAt })); } catch {}
+      try { localStorage.setItem(this.ns(`list:${scope}`), JSON.stringify({ rows, at: L.fetchedAt })); } catch {}
       this.busy = null; cx.notify();
       await forMe;
       if (scope === "all") this.enrich(cx);
@@ -350,7 +433,7 @@ export default class PRs extends View {
     };
     await Promise.all(Array.from({ length: Math.min(6, repos.length) }, worker));
     L.enriching = 0;
-    try { localStorage.setItem(`list:${L.scope}`, JSON.stringify({ rows: L.rows, at: L.fetchedAt })); } catch {}
+    try { localStorage.setItem(this.ns(`list:${L.scope}`), JSON.stringify({ rows: L.rows, at: L.fetchedAt })); } catch {}
     cx.notify();
   }
 
@@ -441,9 +524,9 @@ export default class PRs extends View {
 
   cachePr() {
     try {
-      const c = JSON.parse(localStorage.getItem(`pr:${this.key_()}`) ?? "null");
+      const c = JSON.parse(localStorage.getItem(this.ns(`pr:${this.key_()}`)) ?? "null");
       if (c) { this.pr = c.pr; this.fetchedAt = c.at; }
-      const v = JSON.parse(localStorage.getItem(`viewed:${this.key_()}`) ?? "null");
+      const v = JSON.parse(localStorage.getItem(this.ns(`viewed:${this.key_()}`)) ?? "null");
       if (v) this.files.viewed = new Set(v);
     } catch {}
   }
@@ -471,7 +554,7 @@ export default class PRs extends View {
   async load(cx) {
     cx = this.acx ?? cx;
     if (!this.number) return;
-    if (!this.owner) { this.error = this.configError ?? "No GitHub org: set owner in mods/my-prs/local.json"; this.busy = null; cx.notify(); return; }
+    if (!this.owner) { this.error = this.notConfigured(); this.busy = null; cx.notify(); this.retryConfig(cx); return; }
     const key = this.key_();
     this.busy = "fetching"; this.error = null; cx.notify();
     try {
@@ -492,7 +575,7 @@ export default class PRs extends View {
           if (all.length) this.pr.files = all;
         } catch {}
       }
-      try { localStorage.setItem(`pr:${key}`, JSON.stringify({ pr: this.pr, at: this.fetchedAt })); } catch {}
+      try { localStorage.setItem(this.ns(`pr:${key}`), JSON.stringify({ pr: this.pr, at: this.fetchedAt })); } catch {}
       this.busy = null; cx.notify();
     } catch (e) { this.busy = null; this.error = errText(e); cx.notify(); }
   }
@@ -741,7 +824,7 @@ export default class PRs extends View {
     if (top < this.y) this.scrollTo(top - 8, cx);
     else if (top + h > this.y + this.viewH) this.scrollTo(top + h - this.viewH + 8, cx);
   }
-  openUrl(url) { exec("cmd", ["/c", "start", "", url]); }
+  openUrl(url) { if (this.isWin()) exec("cmd", ["/c", "start", "", url]); else exec("open", [url]); }
   copy(url, cx) { cx.write_to_clipboard(url); this.flash("URL copied", cx, 2000); }
   // This mod's own pane, never a terminal: a key delivered from the command line arrives while
   // the terminal has focus, and acting on the focused pane there would hit the Claude session.
@@ -762,15 +845,16 @@ export default class PRs extends View {
     // y copies the open PR's URL from any of its views (the list copies the highlighted row's).
     if (k === "y" && this.number && ["pr", "files", "diff", "threads", "checks", "log", "review"].includes(v)) { this.copy(this.prUrl(), cx); cx.stop_propagation(); cx.notify(); return; }
     // ? shows every key of this pane in the keybinds popup.
-    if (e.key_char === "?" && !this.textFocused() && !this.list.searching && !this.list.picker && this.reactPick == null && !["confirm", "comment", "compose", "ask"].includes(v)) { this.showKeys(); cx.stop_propagation(); return; }
+    if (e.key_char === "?" && !this.textFocused() && !this.list.searching && !this.list.picker && !this.repos?.filtering && this.reactPick == null && !["confirm", "comment", "compose", "ask"].includes(v)) { this.showKeys(); cx.stop_propagation(); return; }
     // z toggles the pane's zoom wherever no text box has the keys.
-    if (k === "z" && !this.textFocused() && !this.list.searching && !this.list.picker) { this.zoomPane(); cx.stop_propagation(); return; }
+    if (k === "z" && !this.textFocused() && !this.list.searching && !this.list.picker && !this.repos?.filtering) { this.zoomPane(); cx.stop_propagation(); return; }
     if (v === "confirm") {
       if (k === "y") this.runConfirm(cx);
       else if (k === "n" || k === "escape" || k === "q") { this.view = this.confirm.back; this.confirm = null; if (this.view !== "review") this.focus(); }
       else handled = false;
     }
     else if (v === "list") handled = this.keyList(e, cx);
+    else if (v === "repos") handled = this.keyRepos(e, cx);
     else if (v === "pr") handled = this.keyPr(e, cx);
     else if (v === "files") handled = this.keyFiles(e, cx);
     else if (v === "diff") handled = this.keyDiff(e, cx);
@@ -828,12 +912,14 @@ export default class PRs extends View {
     else if (k === "h") { if (grp) toggle(grp); }
     else if (k === "shift-h" || ch === "H") { for (const g of this.groups()) L.folded.add(g.id); reset(); }
     else if (k === "shift-l" || ch === "L") { L.folded.clear(); }
+    else if (this.multi() && ch && /^[1-9]$/.test(ch)) { const name = this.profiles[Number(ch) - 1]; if (name) this.switchProfile(cx, name); }
     else if (ch === "1" || ch === "2") { const scope = ch === "1" ? "set" : "all"; if (scope !== L.scope) { L.scope = scope; L.rows = null; L.people = null; reset(); this.cacheList(); this.loadList(cx); } }
     else if (k === "g") { L.byRepo = !L.byRepo; L.folded = new Set(["automated"]); reset(); }
     else if (k === "m") { L.person = L.person === "me" ? null : "me"; reset(); }
     else if (k === "r") { L.person = L.person === "forme" ? null : "forme"; reset(); }
     else if (k === "n") { L.needs = !L.needs; reset(); }
     else if (ch === "@") L.picker = { at: 0, query: "" };
+    else if (k === "e") this.openRepos(cx);
     else if (ch === "/") L.searching = true;
     else if (k === "b") { L.bots = !L.bots; if (L.bots) L.folded.delete("automated"); else L.folded.add("automated"); }
     else if ((k === "shift-d" || ch === "D") && cur) { this.openFromList(cur, cx); this.openDiff(null, cx); }
@@ -841,11 +927,113 @@ export default class PRs extends View {
     else if (k === "o" && cur) this.openUrl(cur.url);
     else if (k === "y" && cur) this.copy(cur.url, cx);
     else if (k === "shift-r" || ch === "R") { this.loadList(cx); }
+    else if (k === "a") this.switchProfile(cx);
     // esc resets the filters to the default (needs review on); from the default it leaves the pane.
     else if (k === "escape") { if (L.person || L.search || !L.needs) { L.person = null; L.search = ""; L.needs = true; reset(); } else this.back(); }
     else if (k === "q") this.closePane();
     else return false;
     return true;
+  }
+  // e in the list: a page of every repo of the owner; the checked ones are this account's repo set (repos in local.json).
+  openRepos(cx) {
+    if (!this.owner) { this.flash("Set owner in local.json first", cx); return; }
+    const R = { cursor: 0, query: "", filtering: false, all: null, pushed: new Map(), chosen: new Set(this.repoSet), saved: new Set(this.repoSet), error: null };
+    this.repos = R; this.view = "repos"; this.y = 0;
+    this.ghJson(["repo", "list", this.owner, "--limit", "1000", "--no-archived", "--json", "name,pushedAt"], 90000)
+      .then((d) => {
+        R.pushed = new Map((d ?? []).map((r) => [r.name, r.pushedAt ?? ""]));
+        for (const r of R.chosen) if (!R.pushed.has(r)) R.pushed.set(r, ""); // keep checked repos gh no longer lists, so they can be unchecked
+        // Checked first, then the most recently pushed; the order stays put while boxes change.
+        R.all = [...R.pushed.keys()].sort((a, b) => (R.chosen.has(b) - R.chosen.has(a)) || R.pushed.get(b).localeCompare(R.pushed.get(a)) || a.localeCompare(b));
+      })
+      .catch((e) => { R.error = errText(e); })
+      .finally(() => { (this.acx ?? cx).notify(); });
+  }
+  repoRows() {
+    const R = this.repos;
+    const q = R.query.toLowerCase();
+    return (R.all ?? []).filter((r) => !q || r.toLowerCase().includes(q));
+  }
+  reposDirty() { const R = this.repos; return R.chosen.size !== R.saved.size || [...R.chosen].some((r) => !R.saved.has(r)); }
+  keyRepos(e, cx) {
+    const k = e.keystroke, ch = e.key_char;
+    const R = this.repos; const rows = this.repoRows();
+    if (R.filtering) {
+      if (k === "escape") { R.query = ""; R.filtering = false; }
+      else if (k === "enter") R.filtering = false;
+      else if (k === "backspace") R.query = R.query.slice(0, -1);
+      else if (ch && ch.length === 1 && !e.modifiers?.control && !e.modifiers?.alt) R.query += ch;
+      else return false;
+      R.cursor = 0; this.y = 0;
+      return true;
+    }
+    R.cursor = Math.min(R.cursor, Math.max(0, rows.length - 1));
+    const cur = rows[R.cursor];
+    const toggle = (r) => { R.chosen.has(r) ? R.chosen.delete(r) : R.chosen.add(r); };
+    if (k === "j" || k === "down") { R.cursor = Math.min(rows.length - 1, R.cursor + 1); this.keepRowVisible(R.cursor, cx); }
+    else if (k === "k" || k === "up") { R.cursor = Math.max(0, R.cursor - 1); this.keepRowVisible(R.cursor, cx); }
+    else if (k === "d" || k === "ctrl-d" || k === "pagedown") { R.cursor = Math.min(rows.length - 1, R.cursor + this.halfPage(25)); this.keepRowVisible(R.cursor, cx); }
+    else if (k === "u" || k === "ctrl-u" || k === "pageup") { R.cursor = Math.max(0, R.cursor - this.halfPage(25)); this.keepRowVisible(R.cursor, cx); }
+    else if (k === "g") { R.cursor = 0; this.scrollTo(0, cx); }
+    else if (k === "shift-g" || ch === "G") { R.cursor = Math.max(0, rows.length - 1); this.scrollTo(this.maxY(), cx); }
+    else if (k === "space" || k === "x") { if (cur) { toggle(cur); R.cursor = Math.min(rows.length - 1, R.cursor + 1); this.keepRowVisible(R.cursor, cx); } }
+    else if (k === "shift-a" || ch === "A") { const all = rows.length && rows.every((r) => R.chosen.has(r)); for (const r of rows) all ? R.chosen.delete(r) : R.chosen.add(r); }
+    else if (k === "c") R.chosen.clear();
+    else if (ch === "/") R.filtering = true;
+    else if (k === "enter" || k === "s") { if (R.all) this.saveRepos([...R.chosen], cx); }
+    else if (k === "escape" && R.query) { R.query = ""; R.cursor = 0; this.y = 0; }
+    else if (k === "escape" || k === "h") { this.repos = null; this.view = "list"; this.y = 0; this.keepListCursorVisible(); }
+    else if (k === "q") this.closePane();
+    else return false;
+    return true;
+  }
+  // Writes the repo set into local.json (this profile's entry, or the top level without profiles), then back to the list.
+  async saveRepos(repos, cx) {
+    cx = this.acx ?? cx;
+    const L = this.list;
+    let conf;
+    try { conf = JSON.parse((await readTextFile(this.configPath)) ?? "{}"); }
+    catch (e) { this.flash(`local.json isn't valid JSON: ${errText(e)}`, cx, 5000); return; }
+    const target = this.profileName && conf.profiles?.[this.profileName] ? conf.profiles[this.profileName] : conf;
+    repos.sort((a, b) => a.localeCompare(b));
+    if (repos.length) target.repos = repos; else delete target.repos;
+    try { await fs.writeFile(this.configPath, JSON.stringify(conf, null, 2) + "\n"); }
+    catch (e) { this.flash(`Couldn't write local.json: ${errText(e)}`, cx, 5000); return; }
+    this.repos = null; this.view = "list";
+    L.scope = repos.length ? "set" : "all";
+    L.rows = null; L.people = null; L.cursor = 0; this.y = 0;
+    await this.readConfig();
+    this.cacheList();
+    this.flash(repos.length ? `Showing ${repos.length} repo${repos.length === 1 ? "" : "s"}` : "Showing all repos", cx, 2500);
+    this.loadList(cx);
+  }
+  reposBody(t) {
+    const R = this.repos; const rows = this.repoRows();
+    this.rowTop = []; this.rowH = [];
+    const dirty = this.reposDirty();
+    const col = v_flex().gap(1)
+      .child(h_flex().gap(10).items_center().pb(6).text_size(11).text_color(t.dim)
+        .child(div().text_color(t.done).child(`✓ ${R.chosen.size} checked`))
+        .child(div().child(R.chosen.size ? `${R.all ? R.all.length - R.chosen.size : 0} hidden` : "none checked: the list shows all repos"))
+        .when(dirty, (el) => el.child(div().text_color(t.working).child("unsaved · enter saves")))
+        .child(div().flex_1())
+        .child(div().text_color(R.filtering || R.query ? t.accent : t.dim).child(R.filtering || R.query ? `/ ${R.query}${R.filtering ? "▏" : ""}` : "/ to filter")));
+    if (R.error) return col.child(div().py(10).text_size(12).text_color(t.blocked).child(R.error));
+    if (!R.all) return col.child(div().py(10).text_size(12).text_color(t.dim).child(`Loading ${this.owner}'s repos…`));
+    if (!rows.length) return col.child(div().py(10).text_size(12).text_color(t.dim).child("No repo matches."));
+    rows.forEach((r, i) => {
+      const cur = i === R.cursor, on = R.chosen.has(r);
+      const pushed = R.pushed.get(r);
+      col.child(h_flex().id(`repo-${i}`).gap(8).items_center().px(8).h(24).rounded(5).text_size(11.5).border_1().border_color(cur ? t.accent : t.background + "00").when(cur, (el) => el.bg(t.raised))
+        .on_size_change((s) => { this.rowH[i] = s.height; })
+        .on_click((_e, cx) => { R.cursor = i; R.chosen.has(r) ? R.chosen.delete(r) : R.chosen.add(r); cx.notify(); })
+        .child(div().w(14).h(14).flex_none().rounded(3).border_1().border_color(on ? t.done : t.border).when(on, (el) => el.bg(t.done + "33"))
+          .child(div().text_size(10).text_color(t.done).text_center().child(on ? "✓" : "")))
+        .child(this.mono_(div().flex_1().min_w(0).truncate().text_color(on ? t.foreground : cur ? t.foreground : t.muted).child(r)))
+        .child(div().flex_none().text_size(10.5).text_color(t.dim).child(pushed ? `pushed ${age(pushed)}` : "")));
+    });
+    let top = 26; rows.forEach(() => { this.rowTop.push(top); top += 25; });
+    return col;
   }
   keyPeople(e, cx) {
     const k = e.keystroke, ch = e.key_char;
@@ -910,7 +1098,7 @@ export default class PRs extends View {
     const rows = this.fileRows();
     if (!rows[this.files.cursor]?.file) this.files.cursor = Math.max(0, rows.findIndex((r) => r.file));
   }
-  saveViewed() { try { localStorage.setItem(`viewed:${this.key_()}`, JSON.stringify([...this.files.viewed])); } catch {} }
+  saveViewed() { try { localStorage.setItem(this.ns(`viewed:${this.key_()}`), JSON.stringify([...this.files.viewed])); } catch {} }
   keyFiles(e, cx) {
     const k = e.keystroke, ch = e.key_char;
     const F = this.files; const rows = this.fileRows();
@@ -1105,11 +1293,13 @@ export default class PRs extends View {
     const fromList = this.returnTo === "list" || this.view === "list";
     return [
       ["list", "LIST", [["j/k", "move"], ["d/u", "half page"], ["G", "end"], ["enter/l", "open the PR"], ["h", "fold group"], ["H/L", "fold all, open all"],
-        ["1 2", `${this.setName} / all repos`], ["g", "group by repo / attention"], ["r", "needs my review"], ["m", "mine"], ["n", "needs review on / off (on by default: hides drafts and approved)"],
-        ["@", "pick a person"], ["/", "search"], ["esc", "reset filters"], ["b", "show bots"], ["D", "open the diff"], ["c", "open the conversation"], ["o", "open in browser"], ["R", "refresh"]]],
+        this.multi() ? ["1-9", `account: ${this.profiles.join(" / ")}`] : ["1 2", `${this.setName} / all repos`], ["g", "group by repo / attention"], ["r", "needs my review"], ["m", "mine"], ["n", "needs review on / off (on by default: hides drafts and approved)"],
+        ["@", "pick a person"], ["/", "search"], ["esc", "reset filters"], ["b", "show bots"], ["D", "open the diff"], ["c", "open the conversation"], ["o", "open in browser"], ["R", "refresh"], ["a", "next account (profiles in local.json)"], ["e", "choose this account's repos"]]],
       ["pr", "PR", [...(fromList ? [["esc/h", "back to the list"], ["n/N", "next, previous PR"]] : [["esc/h", "back"], ["L", "the list"]]),
         ["j/k d/u", "scroll"], ["gg/G", "top, end"], ["enter/D", "diff"], ["f", "files"], ["c", "conversation"], ["a", "new comment"], ["x", "checks"],
         ["v", "review: approve or request changes"], ["M", "squash merge"], [":", "ask Claude"], ["o", "open in browser"], ["r", "refresh"]]],
+      ["repos", "REPOS", [["j/k", "move"], ["d/u", "half page"], ["g/G", "top, end"], ["space/x", "check / uncheck"], ["A", "check / uncheck every shown repo"], ["c", "uncheck all (list shows all repos)"],
+        ["/", "filter by name"], ["enter/s", "save to local.json and go back"], ["esc/h", "back without saving"]]],
       ["files", "FILES", [["j/k", "move"], ["d/u", "half page"], ["g/G", "top, end"], ["enter/l", "diff of the file"], ["D", "diff from here"], ["x", "mark viewed"],
         ["h", "fold folder"], ["s", "sort by path / size"], ["esc/f", "back"]]],
       ["diff", "DIFF", [["j/k", "line"], ["d/u", "half page"], ["ctrl-f/b", "page"], ["gg/G", "top, end"], ["] [", "next, previous file"], ["n/N", "next, previous hunk"],
@@ -1127,7 +1317,8 @@ export default class PRs extends View {
     const fromList = this.returnTo === "list";
     const more = ["?", "all keys"];
     return {
-      list: [["j/k", "move"], ["enter", "open"], ["n", this.list.needs ? "show all" : "needs review"], ["r", "for me"], ["/", "search"], ["R", "refresh"], more],
+      repos: this.repos?.filtering ? [["type", "filter"], ["enter", "keep"], ["esc", "clear"]] : [["j/k", "move"], ["space", "check"], ["A", "all shown"], ["/", "filter"], ["enter", "save"], ["esc", "back"], more],
+      list: [["j/k", "move"], ["enter", "open"], ["n", this.list.needs ? "show all" : "needs review"], ["r", "for me"], ["/", "search"], ["R", "refresh"], ["e", "repos"], more],
       pr: [["esc", fromList ? "list" : "back"], ...(fromList ? [["n/N", "next, prev"]] : []), ["enter", "diff"], ["c", "talk"], ["v", "review"], ["M", "merge"], more],
       files: [["j/k", "move"], ["enter", "diff"], ["x", "viewed"], ["esc", "back"], more],
       diff: [["j/k", "line"], ["n/N", "hunk"], ["] [", "file"], ["c", "comment"], ["v", "review"], ["esc", "back"], more],
@@ -1145,7 +1336,7 @@ export default class PRs extends View {
   showKeys() {
     const v = this.view;
     const map = this.keyMap();
-    const ansi = { list: 4, pr: 2, files: 6, diff: 5, threads: 3, checks: 1, log: 1, review: 2, any: 7 };
+    const ansi = { list: 4, repos: 4, pr: 2, files: 6, diff: 5, threads: 3, checks: 1, log: 1, review: 2, any: 7 };
     const cur = map.find(([id]) => id === v);
     const groups = [...(cur ? [cur] : []), map.find(([id]) => id === "any")]
       .map(([id, name, rows]) => ({ name, ansi: ansi[id] ?? 7, rows }));
@@ -1177,8 +1368,10 @@ export default class PRs extends View {
       .child(div().child(label)).when(count != null, (el) => el.child(div().text_color(t.dim).child(String(count))));
     const bots = rows.filter((r) => r.bot).length;
     const tabs = h_flex().flex_none().gap(6).items_center().px(14).py(8).border_b(1).border_color(t.border)
-      .child(tab(`1 ${this.setName}`, L.scope === "set" ? rows.length - bots : null, L.scope === "set"))
-      .child(tab("2 All repos", L.scope === "all" ? rows.length - bots : null, L.scope === "all"))
+      .when(this.multi(), (el) => el.children(this.profiles.map((name, i) => tab(`${i + 1} ${name}`, name === this.profileName ? rows.length - bots : null, name === this.profileName))))
+      .when(!this.multi(), (el) => el
+        .child(tab(`1 ${this.setName}`, L.scope === "set" ? rows.length - bots : null, L.scope === "set"))
+        .child(tab("2 All repos", L.scope === "all" ? rows.length - bots : null, L.scope === "all")))
       .child(div().flex_1())
       .child(div().text_size(11).text_color(t.dim).child(L.byRepo ? "by repo · g by attention" : "g by repo"));
     const forMe = rows.filter((r) => !r.bot && this.forMe(r)).length;
@@ -1204,7 +1397,8 @@ export default class PRs extends View {
     this.listTop = [];
     let index = 0;
     const body = v_flex().gap(2).px(10).py(8);
-    if (!L.rows) body.child(div().px(8).py(20).text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…"));
+    if (!L.rows && this.notConfigured()) body.child(this.setupBody(t));
+    else if (!L.rows) body.child(div().px(8).py(20).text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…"));
     else if (!groups.length) body.child(div().px(8).py(20).text_color(t.dim).child("Nothing matches."));
     let top = 8;
     for (const g of groups) {
@@ -1565,13 +1759,13 @@ export default class PRs extends View {
       .on_scroll_wheel((e, cx) => this.scrollTo(this.y - (e.delta?.y ?? 0) / this.zoom, cx));
 
     const titles = { pr: "", files: " · Files", diff: " · Diff", threads: " · Conversation", checks: " · Checks", log: " · Log", review: " · Review", confirm: " · Confirm", comment: " · Comment", compose: " · Comment", ask: " · Ask Claude" };
-    const crumb = this.returnTo === "list" ? `${this.list.scope === "set" ? this.setName : "All repos"}${this.list.person ? ` › ${this.personLabel()}` : ""} › ` : "";
+    const crumb = this.returnTo === "list" && v !== "repos" ? `${this.multi() ? this.profileName : this.list.scope === "set" ? this.setName : "All repos"}${this.list.person ? ` › ${this.personLabel()}` : ""} › ` : "";
     const pos = this.returnTo === "list" && v === "pr" ? this.listPosition() : null;
     const updated = v === "list" ? this.list.fetchedAt : this.fetchedAt;
     const headerBar = h_flex().flex_none().h(30).px(14).gap(10).items_center().bg(t.chrome).border_b(1).border_color(t.border).text_size(11.5).text_color(t.muted)
       .child(div().size(8).rounded(4).bg(this.pr?.checksState === "fail" ? t.blocked : t.accent))
       .when(Boolean(crumb) && v !== "list", (el) => el.child(div().text_color(t.dim).child(crumb)))
-      .child(div().child(v === "list" ? `PRs · ${this.list.scope === "set" ? this.setName : "all repos"}` : `${crumb ? "" : "PRs · "}${this.repo} #${this.number}${titles[v] ?? ""}`))
+      .child(div().child(v === "repos" ? `PRs · ${this.profileName ?? this.owner} · Repos` : v === "list" ? `PRs · ${this.multi() ? `${this.profileName} · ${this.account ?? "active gh account"}` : this.list.scope === "set" ? this.setName : "all repos"}` : `${crumb ? "" : "PRs · "}${this.repo} #${this.number}${titles[v] ?? ""}`))
       .when(Boolean(pos), (el) => el.child(div().text_color(t.dim).child(`${pos} · n/N`)))
       .child(div().flex_1())
       .when(Boolean(this.busy), (el) => el.child(div().text_color(t.working).child(`${this.busy}…`)))
@@ -1594,7 +1788,9 @@ export default class PRs extends View {
     }
 
     let body;
-    if (!this.pr) body = div().text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…");
+    if (v === "repos") body = this.reposBody(t);
+    else if (!this.pr && this.notConfigured()) body = this.setupBody(t);
+    else if (!this.pr) body = div().text_color(this.error ? t.blocked : t.dim).child(this.error ?? "Loading…");
     else if (v === "files") body = this.filesBody(t);
     else if (v === "diff") body = this.diffBody(t);
     else if (v === "threads") body = this.threadsBody(t);

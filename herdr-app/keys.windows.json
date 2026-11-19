@@ -76,7 +76,7 @@
     "z": "pane.zoom",
     "-": "pane.split:down",
     "?": "mod.open:my-help",
-    ":": "app.palette",
+    ":": "mod.open:my-palette",
     "x": "my-status.close-pane",
     "c": "tab.new",
     "shift-c": "space.new",

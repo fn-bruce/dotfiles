@@ -28,6 +28,7 @@ let LABELS = {};
 
 // First match wins; order is column order. `color` is a theme ansi index.
 const GROUPS = [
+  { name: "WORK", ansi: 3, re: /:my-(prs|tickets|drafts)$/ },
   { name: "PANES", ansi: 4, re: /^pane\.|close-pane/ },
   { name: "TABS", ansi: 2, re: /^tab\.(?!new:my-brain)/ },
   { name: "SPACES", ansi: 5, re: /^space\.|^my-spaces\./ },
