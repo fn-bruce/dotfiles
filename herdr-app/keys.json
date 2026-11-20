@@ -58,7 +58,8 @@
     "ctrl-7": "space.select:7",
     "ctrl-8": "space.select:8",
     "ctrl-9": "space.select:9",
-    "ctrl-a": "mod.open:my-leader"
+    "ctrl-a": "mod.open:my-leader",
+    "cmd-j": "mod.open:my-scratch"
   },
   "terminal": {
     "cmd-f": "terminal.search",
@@ -97,6 +98,7 @@
     "z": "pane.zoom",
     "-": "pane.split:down",
     "?": "mod.open:my-help",
+    ".": "mod.open:my-scratch",
     ":": "mod.open:my-palette",
     "x": "my-status.close-pane",
     "c": "tab.new",

@@ -1,4 +1,5 @@
 {
+  "mod.open:my-scratch": "scratch claude (toggle)",
   "pane.split:right": "split right",
   "pane.split:down": "split down",
   "pane.split:my-prs": "PRs pane",

@@ -5,7 +5,8 @@
 // The next key is looked up in keys.json's "mod:leader" section (single keys: "x", "|",
 // "shift-c", "ctrl-a") and run here, then the popup closes. No mod is named "leader", so the
 // app itself never runs that section: this popup is the only thing that does, exactly once.
-// esc, a key with no binding, or a click elsewhere just closes it. ctrl-a ? opens the cheatsheet.
+// esc or a key with no binding closes it and gives the keyboard back to what had it (a pane, a peek,
+// a sidebar); a click elsewhere just closes it. ctrl-a ? opens the cheatsheet.
 //
 // send:<text> actions (ctrl-a ctrl-a sends a literal ctrl-a) are pressed into the focused
 // terminal with `hc keys`, which types keys without the Enter that `hc send` adds.
@@ -13,7 +14,7 @@
 // From the CLI: herdr-app do my-leader.key-x (key-shift-c, key-ctrl-a, key-escape, ...)
 
 import { View, div } from "gpui-kit";
-import { keys, commands, run, props, closeOverlay, focused, hc, notify, checking, nextCommand, shared, setShared } from "herdr";
+import { keys, commands, run, props, closeOverlay, focused, panes, hc, notify, checking, nextCommand, shared, setShared } from "herdr";
 
 const SECTION = "mod:leader";
 const OPENER = "mod.open:my-leader";
@@ -55,6 +56,9 @@ export default class MyLeader extends View {
     // The sidebar mod (my-agents, my-spaces) that had the keyboard when the chord was pressed,
     // read now because this popup takes the keyboard from it.
     this.sidebar = shared("sidebar") || null;
+    // What had the keyboard, so esc or an unbound key can give it back: closing this popup returns
+    // the keyboard to the pane under it, not to a peek (my-scratch) or a sidebar.
+    this.prev = checking() ? null : focused();
     this.handle = cx.focus_handle();
     this.handle.focus();
     if (checking()) return;
@@ -99,17 +103,34 @@ export default class MyLeader extends View {
   // Lifecycle hook: runs however the overlay goes (dismiss above, the app's Esc, quit), so the
   // status bar badge never sticks.
   async close() {
-    if (!checking()) setShared("leader", false);
+    if (checking()) return;
+    setShared("leader", false);
+    // Closed by the app (its own Esc handling) before press() saw a key: still give focus back.
+    if (!this.done) { this.done = true; this.restore(); }
   }
 
   press(e, cx) {
     if (this.done) return true;
     if (MODIFIER_KEYS.has(e.key)) return false;
-    if (e.key === "escape") { this.dismiss(); return true; }
+    if (e.key === "escape") { this.dismiss(); this.restore(); return true; }
     const hit = this.find(e);
     this.dismiss();
     if (hit) this.exec(parseAction(hit.action), cx);
+    else this.restore();
     return true;
+  }
+
+  // Give the keyboard back to what had it when the leader opened. Run after dismiss(): closing the
+  // popup refocuses the pane below, which would undo it. A terminal with no pane of its own is a
+  // peek (terminal.peek again refocuses it); one shown in a layout block goes through pane.focus.
+  restore() {
+    if (this.sidebar) return run(`${this.sidebar}.focus`);
+    const f = this.prev;
+    if (!f) return;
+    if (f.pane) return run("pane.focus", { pane: f.pane });
+    if (!f.terminal) return;
+    if (panes().some((p) => p.terminal === f.terminal)) run("pane.focus", { terminal: f.terminal });
+    else run("terminal.peek", { terminal: f.terminal });
   }
 
   // pane.go:right while a sidebar holds the keyboard: the app still counts the last terminal
